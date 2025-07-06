@@ -8,20 +8,24 @@ import Checkout from "./pages/Checkout";
 import Receipt from "./pages/Reciept";
 import MyBookings from "./pages/MyBookings";
 import NavBar from "./components/NavBar";
+import { MovieDetail } from "./pages/MovieDetail";
+import { Booking } from "./pages/Booking";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 
 const App = () => {
   return (
-    <div>
-      <NavBar/>
+    <div className="font-[poppins]">
       <Routes>
         <Route path="/" element={<Outlet />}>
           <Route index element={<Home />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/show/:id" element={<ShowDetails />} />
+          <Route path="/auth" element={<Auth/>} />
+          <Route path="/movie/:id" element={<MovieDetail/>} />
+          <Route path="/booking/:id" element={<Booking/>} /> 
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/receipt" element={<Receipt />} />
-          <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/bookings" element={<MyBookings />} />
+          <Route path="/profile" element={<Profile/>}/>
         </Route>
       </Routes>
     </div>
