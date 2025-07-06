@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { shows } from "../data/shows";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import {toast} from "sonner";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 

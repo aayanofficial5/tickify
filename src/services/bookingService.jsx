@@ -1,7 +1,12 @@
 import { db } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
-export const saveBookingToFirestore = async ({ userId, show, seats, paymentId }) => {
+export const saveBookingToFirestore = async ({
+  userId,
+  show,
+  seats,
+  paymentId,
+}) => {
   try {
     await addDoc(collection(db, "bookings"), {
       userId,

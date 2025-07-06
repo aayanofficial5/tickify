@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import toast from "react-hot-toast";
+import {toast} from "sonner";
 import { getAuth } from "firebase/auth";
 import { buyTicket } from "../services/paymentService";
 
