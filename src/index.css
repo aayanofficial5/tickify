@@ -266,3 +266,7 @@
 .bg-gradient-dark{
   background-image: var(--gradient-dark);
 }
+
+.button{
+  cursor: pointer;
+}
