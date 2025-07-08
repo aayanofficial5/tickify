@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  onAuthStateChanged,
-  updateProfile,
-  deleteUser,
-} from "firebase/auth";
+import { onAuthStateChanged, updateProfile, deleteUser } from "firebase/auth";
 import {
   doc,
   getDoc,
@@ -76,6 +72,10 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  const [moviesWatched, setMoviesWatched] = useState(0);
+  const [activeBookings, setActiveBookings] = useState(0);
+  const [yearsMember, setYearsMember] = useState(0);
+
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -86,12 +86,15 @@ export default function Profile() {
     },
   });
 
-  /* -------------------- Load Auth & Firestore data -------------------- */
+  /* -------------------- Load Profile & Stats -------------------- */
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
 
-      const userDocRef = doc(db, "users", user.uid);
+      const uid = user.uid;
+
+      // Get Firestore profile
+      const userDocRef = doc(db, "users", uid);
       const snap = await getDoc(userDocRef);
       const fsData = snap.exists() ? snap.data() : {};
 
@@ -103,8 +106,29 @@ export default function Profile() {
         bio: fsData.bio || "",
       };
       setInitialValues(profile);
-      form.reset(profile); // email is read‑only but we keep it for convenience
+      form.reset(profile);
+
+      // Fetch Stats
+      const bookingsSnap = await getDocs(collection(db, "bookings"));
+      const userBookings = bookingsSnap.docs
+        .map((doc) => doc.data())
+        .filter((b) => b.userId === uid);
+
+      setMoviesWatched(userBookings.length);
+      setActiveBookings(
+        userBookings.filter((b) => b.status === "confirmed").length
+      );
+
+      if (fsData.createdAt?.toDate) {
+        const joinDate = fsData.createdAt.toDate();
+        const now = new Date();
+        const diffYears = Math.floor(
+          (now.getTime() - joinDate.getTime()) / (1000 * 60 * 60 * 24 * 365)
+        );
+        setYearsMember(diffYears);
+      }
     });
+
     return unsub;
   }, [form]);
 
@@ -115,12 +139,10 @@ export default function Profile() {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
 
-      // Update Auth profile if name changed
       if (values.fullName !== user.displayName) {
         await updateProfile(user, { displayName: values.fullName });
       }
 
-      // Update Firestore doc
       await setDoc(
         doc(db, "users", user.uid),
         {
@@ -148,14 +170,11 @@ export default function Profile() {
       const user = auth.currentUser;
       if (!user) throw new Error("User not authenticated");
 
-      // 1) Remove Firestore data (main doc + example subcollection)
       await deleteUserData(user.uid);
-
-      // 2) Delete Auth user (will sign them out)
       await deleteUser(user);
 
       toast.success("Account deleted");
-      window.location.href = "/"; // or navigate("/login")
+      window.location.href = "/";
     } catch (err) {
       if (err.code === "auth/requires-recent-login") {
         toast.error("Please re‑authenticate and try again.");
@@ -169,10 +188,7 @@ export default function Profile() {
   };
 
   async function deleteUserData(uid) {
-    // Delete main document
     await deleteDoc(doc(db, "users", uid));
-
-    // Example: delete subcollection "bookings" if present
     const bookingsRef = collection(db, "users", uid, "bookings");
     const snap = await getDocs(bookingsRef);
     if (!snap.empty) {
@@ -182,28 +198,30 @@ export default function Profile() {
     }
   }
 
-  /* --------------------------- Loader --------------------------- */
   if (!initialValues) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <NavBar/>
+        <NavBar />
         <span className="text-muted-foreground">Loading profile…</span>
       </div>
     );
   }
 
-  /* ----------------------------- JSX ----------------------------- */
   return (
     <div className="min-h-screen bg-gradient-dark">
-      <NavBar/>
+      <NavBar />
       <div className="container px-4 py-8 mx-auto max-w-2xl">
-        {/* ------------- Profile Card ------------- */}
+        {/* Profile Card */}
         <Card className="bg-cinema-card border-cinema-border shadow-card-cinema">
           <CardHeader className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-2xl font-bold text-gradient">My Profile</CardTitle>
+              <CardTitle className="text-2xl font-bold text-gradient">
+                My Profile
+              </CardTitle>
               <CardDescription>
-                {isEditing ? "Edit your details" : "Manage your account information"}
+                {isEditing
+                  ? "Edit your details"
+                  : "Manage your account information"}
               </CardDescription>
             </div>
             {!isEditing && (
@@ -214,14 +232,12 @@ export default function Profile() {
           </CardHeader>
 
           <CardContent>
-            {/* ------------- Edit Mode ------------- */}
             {isEditing ? (
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(handleSave)}
                   className="space-y-5"
                 >
-                  {/* Full Name */}
                   <FormField
                     control={form.control}
                     name="fullName"
@@ -240,7 +256,6 @@ export default function Profile() {
                     )}
                   />
 
-                  {/* Email (read‑only) */}
                   <div>
                     <FormLabel>Email</FormLabel>
                     <div className="mt-2 bg-cinema-dark border border-cinema-border rounded-md px-3 py-2 text-sm">
@@ -251,7 +266,6 @@ export default function Profile() {
                     </p>
                   </div>
 
-                  {/* Phone */}
                   <FormField
                     control={form.control}
                     name="phone"
@@ -270,7 +284,6 @@ export default function Profile() {
                     )}
                   />
 
-                  {/* Location */}
                   <FormField
                     control={form.control}
                     name="location"
@@ -289,7 +302,6 @@ export default function Profile() {
                     )}
                   />
 
-                  {/* Bio */}
                   <FormField
                     control={form.control}
                     name="bio"
@@ -308,14 +320,15 @@ export default function Profile() {
                     )}
                   />
 
-                  {/* Buttons */}
                   <div className="flex gap-3 pt-2">
                     <Button
                       type="submit"
                       disabled={loading}
                       className="flex-1 bg-gradient-primary"
                     >
-                      {loading ? "Saving…" : (
+                      {loading ? (
+                        "Saving…"
+                      ) : (
                         <>
                           <Save className="h-4 w-4 mr-2" /> Save
                         </>
@@ -337,19 +350,62 @@ export default function Profile() {
                 </form>
               </Form>
             ) : (
-              /* ------------- View Mode ------------- */
               <div className="space-y-4">
-                <ReadOnlyRow label="Full Name" value={initialValues.fullName} icon={User} />
-                <ReadOnlyRow label="Email" value={initialValues.email} icon={Mail} />
-                <ReadOnlyRow label="Phone" value={initialValues.phone} icon={Phone} />
-                <ReadOnlyRow label="Location" value={initialValues.location} icon={MapPin} />
+                <ReadOnlyRow
+                  label="Full Name"
+                  value={initialValues.fullName}
+                  icon={User}
+                />
+                <ReadOnlyRow
+                  label="Email"
+                  value={initialValues.email}
+                  icon={Mail}
+                />
+                <ReadOnlyRow
+                  label="Phone"
+                  value={initialValues.phone}
+                  icon={Phone}
+                />
+                <ReadOnlyRow
+                  label="Location"
+                  value={initialValues.location}
+                  icon={MapPin}
+                />
                 <ReadOnlyRow label="Bio" value={initialValues.bio} />
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* ------------- Danger Zone ------------- */}
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+          <Card className="bg-cinema-card border-cinema-border">
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-cinema-gold mb-1">
+                {moviesWatched}
+              </div>
+              <div className="text-sm text-muted-foreground">Show Purchased</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-cinema-card border-cinema-border">
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-cinema-gold mb-1">
+                {activeBookings}
+              </div>
+              <div className="text-sm text-muted-foreground">Active Bookings</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-cinema-card border-cinema-border">
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-cinema-gold mb-1">
+                {yearsMember}
+              </div>
+              <div className="text-sm text-muted-foreground">Years Member</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Danger Zone */}
         <Card className="bg-cinema-card border-cinema-border shadow-card-cinema mt-6">
           <CardHeader>
             <CardTitle className="text-destructive">Danger Zone</CardTitle>
@@ -369,13 +425,13 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* ------------- Delete confirmation dialog ------------- */}
         <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete account?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action will permanently remove your account and all related data.
+                This action will permanently remove your account and all related
+                data.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -395,14 +451,15 @@ export default function Profile() {
   );
 }
 
-/* --------------------------- Helper --------------------------- */
 function ReadOnlyRow({ label, value, icon: Icon }) {
   return (
     <div className="flex items-start gap-3">
       {Icon ? <Icon className="h-4 w-4 mt-1 text-muted-foreground" /> : null}
       <div>
         <div className="text-sm text-muted-foreground">{label}</div>
-        <div className="text-base font-medium text-foreground">{value || "—"}</div>
+        <div className="text-base font-medium text-foreground">
+          {value || "—"}
+        </div>
       </div>
     </div>
   );

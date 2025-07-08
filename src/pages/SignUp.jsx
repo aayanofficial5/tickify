@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 
-const Signup = () => {
+const Signup = ({ setIsLogin }) => {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,10 +32,14 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       await updateProfile(userCredential.user, { displayName: fullName });
       toast.success("Account created successfully!");
-      navigate("/");
+      setIsLogin(true);
     } catch (error) {
       toast.error(error.message || "Signup failed.");
     } finally {
@@ -108,7 +112,7 @@ const Signup = () => {
       <Button
         type="submit"
         disabled={loading}
-        className="w-full bg-gradient-to-r from-yellow-400 to-purple-500 hover:opacity-90 transition text-black font-semibold"
+        className="w-full btn-gradient hover:opacity-90 transition text-black font-semibold"
       >
         {loading ? "Creating..." : "Create Account"}
       </Button>

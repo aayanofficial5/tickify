@@ -4,60 +4,96 @@ import Signup from "./SignUp";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const Auth = () => {
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
+  const [isAdminRoute, setIsAdminRoute] = useState(false);
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const mode = queryParams.get("mode");
-    setIsLogin(mode !== "signup"); 
-  }, [location.search]);
+    const isAdmin = location.pathname === "/admin";
+    setIsAdminRoute(isAdmin);
+
+    if (isAdmin) {
+      setIsLogin(true); // force login for admin
+    } else {
+      const queryParams = new URLSearchParams(location.search);
+      const mode = queryParams.get("mode");
+      setIsLogin(mode !== "signup");
+    }
+  }, [location]);
 
   return (
-    <div className={`min-h-screen flex justify-center bg-[#0f0f0f] px-4 text-white pt-35 ${isLogin?"pb-50":"pb-23"}`}>
+    <div
+      className={`min-h-screen flex justify-center bg-[#0f0f0f] px-4 text-white pt-35 ${
+        isLogin ? "pb-50" : "pb-23"
+      }`}
+    >
       <div className="text-center absolute top-12">
-        <h1 className="text-4xl font-extrabold bg-gradient-to-r from-yellow-400 to-purple-500 bg-clip-text text-transparent flex items-center justify-center gap-2">
-          <span>🎟️</span> CinemaFlix
+        <h1 className="text-4xl font-extrabold text-gradient flex items-center justify-center gap-2">
+          <span>🎟️</span> Tickify
         </h1>
         <p className="text-sm text-gray-400 mt-1">
-          Your premium movie experience awaits
+          {isAdminRoute
+            ? "Admin login panel"
+            : "Your premium movie experience awaits"}
         </p>
       </div>
 
       <Card className="w-full max-w-md bg-[#1a1a1a] border border-gray-700 rounded-xl shadow-lg">
         <CardHeader className="text-center">
-          <h2 className="text-2xl font-bold">Welcome</h2>
+          <h2 className="text-2xl font-bold">
+            {isAdminRoute ? "Admin Login" : "Welcome"}
+          </h2>
           <p className="text-sm text-gray-400">
             {isLogin ? "Sign in to your account" : "Create a new account"}
           </p>
         </CardHeader>
 
         <CardContent>
-          {/* Toggle Tabs */}
-          <div className="flex mb-6 gap-1">
-            <Button
-              variant="ghost"
-              className={`flex-1 ${isLogin ? "bg-black text-white" : "text-gray-400"}`}
-              onClick={() => setIsLogin(true)}
-            >
-              Sign In
-            </Button>
-            <Button
-              variant="ghost"
-              className={`flex-1 ${!isLogin ? "bg-black text-white" : "text-gray-400"}`}
-              onClick={() => setIsLogin(false)}
-            >
-              Sign Up
-            </Button>
-          </div>
+          {/* Toggle Tabs (hide if admin route) */}
+          {!isAdminRoute && (
+            <div className="flex mb-6 p-2 gap-1 rounded-3xl bg-cinema-border">
+              <Button
+                variant="ghost"
+                className={`flex-1 rounded-2xl ${
+                  isLogin
+                    ? "bg-black hover:bg-black  text-white"
+                    : "text-gray-400 hover:bg-cinema-dark/50"
+                }`}
+                onClick={() => setIsLogin(true)}
+              >
+                Sign In
+              </Button>
 
-          {isLogin ? <Login /> : <Signup />}
+              <Button
+                variant="ghost"
+                className={`flex-1 rounded-2xl ${
+                  !isLogin
+                    ? "bg-black text-white hover:bg-black"
+                    : "text-gray-400 hover:bg-cinema-dark/50"
+                }`}
+                onClick={() => setIsLogin(false)}
+              >
+                Sign Up
+              </Button>
+            </div>
+          )}
 
-          <div className="text-center mt-6">
-            <Link to="/" className="text-sm text-gray-400 hover:underline">
-              ← Back to Movies
+          {/* Form */}
+          {isLogin ? (
+            <Login isAdmin={isAdminRoute} />
+          ) : (
+            <Signup setIsLogin={setIsLogin} />
+          )}
+
+          <div className="flex justify-center">
+            <Link to="/">
+              <Button variant="ghost" className="mt-6 bg-cinema-border">
+                <ArrowLeft />
+                <div>Back to Movies</div>
+              </Button>
             </Link>
           </div>
         </CardContent>

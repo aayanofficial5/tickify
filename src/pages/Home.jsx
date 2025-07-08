@@ -1,40 +1,38 @@
 import { MovieCard } from "@/components/MovieCard";
 import NavBar from "@/components/NavBar";
 import { sampleMovies } from "@/data/movies";
-import { auth } from "@/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { resetBooking, setSelectedMovie } from "@/redux/slices/bookingSlice";
+import { fetchMoviesFromFirestore } from "@/services/firebaseDatabase";
 import { ArrowRight, Check, Play, Ticket } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-  // const [filteredMovies, setFilteredMovies] = useState(sampleMovies);
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
+  const { user } = useSelector((state) => state.auth);
+  const [movies, setMovies] = useState([]);
+  const dispatch = useDispatch();
+  
+
+  async function fetchMovies() {
+    const result = await fetchMoviesFromFirestore();
+    console.log(result);
+    if (result) {
+      setMovies(result);
+    } else {
+      setMovies(sampleMovies);
+    }
+  }
 
   useEffect(() => {
-    const scrollToSection = location.state?.scrollToId;
-    if (scrollToSection) {
-      const el = document.getElementById(scrollToSection);
-      if (el) {
-        setTimeout(() => {
-          el.scrollIntoView({ behavior: "smooth" });
-        }, 100); // delay to ensure DOM is loaded
-      }
-    }
-  }, [location]);
+    fetchMovies();
+    dispatch(setSelectedMovie(null));
+    dispatch(resetBooking());
+  }, [dispatch]);
+
   return (
     <div className="min-h-screen text-white bg-gradient-dark">
-      <NavBar/>
+      <NavBar />
       {/* Hero Section */}
       {!user && (
         <section className="relative bg-gradient-dark flex flex-col min-h-[90vh]">
@@ -60,7 +58,7 @@ export default function Home() {
                 Browse Movies
               </button>
 
-              <Link to="/login">
+              <Link to="/auth?mode=signup">
                 <button className="btn-dark">
                   Get Started
                   <ArrowRight />
@@ -77,7 +75,7 @@ export default function Home() {
       )}
 
       {/* Now Playing Section */}
-      <section id="now-playing" className="py-24 px-4">
+      <section id="now-playing" className="py-8 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-foreground mb-4">
@@ -90,12 +88,12 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {sampleMovies.map((movie) => (
+            {movies?.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>
 
-          {sampleMovies.length === 0 && (
+          {movies?.length === 0 && (
             <div className="text-center py-12">
               <p className="text-xl text-muted-foreground">
                 No movies available right now!
