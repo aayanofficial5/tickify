@@ -1,92 +1,67 @@
-// import { useEffect, useState } from "react";
-// import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-// import { db } from "../firebase";
-// import { getAuth } from "firebase/auth";
-
-// const MyBookings = () => {
-//   const [bookings, setBookings] = useState([]);
-//   const auth = getAuth();
-//   const user = auth.currentUser;
-//   // console.log(user);
-//   useEffect(() => {
-//     const fetchBookings = async () => {
-//       if (!user) return;
-
-//       try {
-//         const q = query(
-//           collection(db, "bookings"),
-//           where("userId", "==", user.uid),
-//           orderBy("timestamp", "desc")
-//         );
-
-//         const querySnapshot = await getDocs(q);
-//         const data = querySnapshot.docs.map((doc) => ({
-//           id: doc.id,
-//           ...doc.data(),
-//         }));
-//         setBookings(data);
-//       } catch (error) {
-//         console.error("Error fetching bookings:", error);
-//       }
-//     };
-
-//     fetchBookings();
-//   }, []);
-
-//   return (
-//     <div className="p-6 min-h-screen bg-gray-100">
-//       <h2 className="text-2xl font-bold mb-4">🎟️ My Bookings</h2>
-
-//       {bookings.length === 0 ? (
-//         <p className="text-gray-700">No bookings found.</p>
-//       ) : (
-//         <div className="grid gap-4">
-//           {bookings.map((booking) => (
-//             <div key={booking.id} className="bg-white shadow rounded p-4">
-//               <p>
-//                 <strong>🎬 Show:</strong> {booking.showTitle}
-//               </p>
-//               <p>
-//                 <strong>🪑 Seats:</strong> {booking.seats.join(", ")}
-//               </p>
-//               <p>
-//                 <strong>💵 Amount:</strong> ₹{booking.amount}
-//               </p>
-//               <p>
-//                 <strong>🧾 Payment ID:</strong> {booking.paymentId}
-//               </p>
-//               <p>
-//                 <strong>🕒 Time:</strong>{" "}
-//                 {booking.timestamp?.toDate().toLocaleString()}
-//               </p>
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default MyBookings;
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, MapPin, Ticket, Star, Download } from "lucide-react";
-import { toast } from "sonner"; // or your toast provider
-import { sampleBookings } from "@/data/bookings"; // your data source
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Ticket,
+  Star,
+  Download,
+  View,
+} from "lucide-react";
+import { toast } from "sonner";
 import NavBar from "@/components/NavBar";
+import { getAuth } from "firebase/auth";
+import { db } from "@/firebase";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { generateTicketPDF, handlePreviewPDF } from "@/services/ticketPDF";
+import {
+  cancelBookingAndReleaseSeats,
+  markBookingAsCompletedIfExpired,
+} from "@/services/firebaseDatabase";
 
 export default function MyBookings() {
-  const [bookings] = useState(sampleBookings);
+  const [bookings, setBookings] = useState([]);
   const [filterStatus, setFilterStatus] = useState("all");
+
+  const auth = getAuth();
+  const user = auth?.currentUser;
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    if (!user) return;
+
+    try {
+      const q = query(
+        collection(db, "bookings"),
+        where("userId", "==", user?.uid),
+        orderBy("bookedAt", "desc")
+      );
+
+      const querySnapshot = await getDocs(q);
+      const data = await Promise.all(
+        querySnapshot.docs.map(async (docSnap) => {
+          const booking = { id: docSnap.id, ...docSnap.data() };
+          const updatedBooking = await markBookingAsCompletedIfExpired(booking);
+          return updatedBooking || booking;
+        })
+      );
+      setBookings(data);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    }
+  };
 
   const filteredBookings =
     filterStatus === "all"
       ? bookings
-      : bookings.filter((booking) => booking.status === filterStatus);
+      : bookings?.filter((booking) => booking?.status === filterStatus);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -101,16 +76,26 @@ export default function MyBookings() {
     }
   };
 
-  const handleDownloadTicket = (booking) => {
-    toast("Downloading Ticket", {
-      description: `Ticket for ${booking.movieTitle} is being downloaded.`,
-    });
+  const handlePreview = async (booking) => {
+    await handlePreviewPDF(booking);
   };
 
-  const handleCancelBooking = () => {
-    toast.error("Booking Cancelled", {
-      description: "Your booking has been cancelled successfully.",
-    });
+  const handleDownloadTicket = async (booking) => {
+    try {
+      await generateTicketPDF(booking);
+      toast.success("Ticket Downloaded", {
+        description: "Your ticket has been saved as a PDF.",
+      });
+    } catch (err) {
+      toast.error("Download Failed", {
+        description: err.message,
+      });
+    }
+  };
+
+  const handleCancelBooking = async (id) => {
+    await cancelBookingAndReleaseSeats(id);
+    fetchBookings();
   };
 
   const BookingCard = ({ booking }) => (
@@ -118,7 +103,7 @@ export default function MyBookings() {
       <CardContent className="p-6">
         <div className="flex gap-4">
           <img
-            src={booking.moviePoster}
+            src={booking.poster}
             alt={booking.movieTitle}
             className="w-20 h-28 object-cover rounded border border-cinema-border"
           />
@@ -129,7 +114,7 @@ export default function MyBookings() {
                   {booking.movieTitle}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Confirmation: {booking.confirmationCode}
+                  Payment ID: {booking.paymentId}
                 </p>
               </div>
               <Badge className={getStatusColor(booking.status)}>
@@ -139,21 +124,21 @@ export default function MyBookings() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-3 text-sm">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="space-y-2 text-muted-foreground">
+                <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {new Date(booking.date).toLocaleDateString("en-US", {
+                  {new Date(booking.date).toLocaleDateString("en-IN", {
                     weekday: "long",
                     year: "numeric",
                     month: "long",
                     day: "numeric",
                   })}
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  {booking.showtime}
+                  {booking.time}
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
                   {booking.theater}
                 </div>
@@ -161,17 +146,21 @@ export default function MyBookings() {
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Ticket className="h-4 w-4" />
+                  <div>
                   Seats:{" "}
-                  {booking.seats
-                    .map((seat) => `${seat.row}${seat.number}`)
+                  {booking.seatDetails
+                    ?.map((s) => `${s.row}${s.number} (${s.type})`)
                     .join(", ")}
+                    </div>
                 </div>
                 <div className="text-lg font-bold text-cinema-gold">
-                  Total: ${booking.totalPrice.toFixed(2)}
+                  Total: ₹{booking.totalAmount?.toFixed(2)}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Booked on {new Date(booking.bookingDate).toLocaleDateString()}
+                  Booked on{" "}
+                  {new Date(booking.bookedAt?.toDate?.()).toLocaleDateString(
+                    "en-IN"
+                  )}
                 </div>
               </div>
             </div>
@@ -179,6 +168,14 @@ export default function MyBookings() {
             <div className="flex gap-2 pt-2">
               {booking.status === "confirmed" && (
                 <>
+                  <Button
+                    size="sm"
+                    onClick={() => handlePreview(booking)}
+                    className="bg-gradient-primary text-cinema-dark hover:bg-cinema-gold/90"
+                  >
+                    <View className="h-4 w-4 mr-2" />
+                    Preview Ticket
+                  </Button>
                   <Button
                     size="sm"
                     onClick={() => handleDownloadTicket(booking)}
@@ -197,28 +194,6 @@ export default function MyBookings() {
                   </Button>
                 </>
               )}
-
-              {booking.status === "completed" && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-cinema-border hover:bg-cinema-card"
-                >
-                  <Star className="h-4 w-4 mr-2" />
-                  Rate Movie
-                </Button>
-              )}
-
-              {booking.status === "cancelled" && (
-                <Button
-                  size="sm"
-                  disabled
-                  variant="outline"
-                  className="opacity-50 cursor-not-allowed"
-                >
-                  Cancelled
-                </Button>
-              )}
             </div>
           </div>
         </div>
@@ -228,7 +203,7 @@ export default function MyBookings() {
 
   return (
     <div className="min-h-screen bg-gradient-dark">
-      <NavBar/>
+      <NavBar />
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">
@@ -239,6 +214,7 @@ export default function MyBookings() {
           </p>
         </div>
 
+        {/* Stats Cards */}
         <div className="grid md:grid-cols-4 gap-4 mb-8">
           <Card className="bg-gradient-card border-cinema-border">
             <CardContent className="p-4 text-center">
@@ -269,46 +245,36 @@ export default function MyBookings() {
           <Card className="bg-gradient-card border-cinema-border">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-cinema-gold">
-                ${bookings.reduce((sum, b) => sum + b.totalPrice, 0).toFixed(0)}
+                ₹
+                {bookings
+                  .reduce((sum, b) => sum + (b.totalAmount || 0), 0)
+                  .toFixed(0)}
               </div>
               <div className="text-sm text-muted-foreground">Total Spent</div>
             </CardContent>
           </Card>
         </div>
 
+        {/* Tabs */}
         <Tabs
           value={filterStatus}
-          onValueChange={(value) => setFilterStatus(value)}
+          onValueChange={setFilterStatus}
           className="space-y-6"
         >
           <TabsList className="grid w-full grid-cols-4 bg-cinema-card border border-cinema-border">
-            <TabsTrigger
-              value="all"
-              className="data-[state=active]:bg-cinema-gold data-[state=active]:text-cinema-dark"
-            >
-              All ({bookings.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="confirmed"
-              className="data-[state=active]:bg-cinema-gold data-[state=active]:text-cinema-dark"
-            >
-              Upcoming (
-              {bookings.filter((b) => b.status === "confirmed").length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="completed"
-              className="data-[state=active]:bg-cinema-gold data-[state=active]:text-cinema-dark"
-            >
-              Completed (
-              {bookings.filter((b) => b.status === "completed").length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="cancelled"
-              className="data-[state=active]:bg-cinema-gold data-[state=active]:text-cinema-dark"
-            >
-              Cancelled (
-              {bookings.filter((b) => b.status === "cancelled").length})
-            </TabsTrigger>
+            {["all", "confirmed", "completed", "cancelled"].map((status) => (
+              <TabsTrigger
+                key={status}
+                value={status}
+                className="data-[state=active]:bg-cinema-gold data-[state=active]:text-cinema-dark"
+              >
+                {status.charAt(0).toUpperCase() + status.slice(1)} (
+                {status === "all"
+                  ? bookings.length
+                  : bookings.filter((b) => b.status === status).length}
+                )
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value={filterStatus} className="space-y-4">

@@ -1,13 +1,42 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { Calendar, Clock, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { setSelectedShowtime } from "@/redux/slices/bookingSlice";
+import { formatTo12Hour } from "@/utils/formatTime";
 
+export const ShowtimeSelection = ({
+  onNext,
+  selectedMovie,
+}) => {
+  
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedTheater, setSelectedTheater] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  const availableTimes = selectedMovie?.showtimes || [];
 
-export const ShowtimeSelection = ({ movie, selectedShowtime, onShowtimeSelect }) => {
-  // Generate dates for the next 7 days
-  const dates = Array.from({ length: 7 }, (_, i) => {
+  // Group showtimes by date
+  const groupedByDate = availableTimes.reduce((acc, datetime) => {
+    const dateObj = new Date(datetime);
+    const dateKey = dateObj.toLocaleDateString("en-CA");
+    const timeVal = dateObj.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12:false,
+    });
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(timeVal);
+    return acc;
+  }, {});
+  // console.log(groupedByDate);
+
+  const next7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() + i);
     return date;
@@ -16,8 +45,37 @@ export const ShowtimeSelection = ({ movie, selectedShowtime, onShowtimeSelect })
   const theaters = [
     { name: "CinemaFlix Downtown", distance: "0.5 miles" },
     { name: "CinemaFlix Mall", distance: "1.2 miles" },
-    { name: "CinemaFlix North", distance: "2.8 miles" }
+    { name: "CinemaFlix North", distance: "2.8 miles" },
   ];
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    setSelectedTheater(null);
+    setSelectedTime(null);
+  };
+
+  const handleTimeClick = (theater, time) => {
+    if (!selectedDate) {
+      toast.error("Please select a date first.");
+      return;
+    }
+    setSelectedTheater(theater.name);
+    setSelectedTime(time);
+  };
+
+  const handleNext = () => {
+    if (!selectedDate || !selectedTheater || !selectedTime) return;
+    const showtimeObj = {
+      date: selectedDate.toLocaleDateString("en-CA"),
+      time: selectedTime,
+      theater: selectedTheater,
+    };
+    // console.log(showtimeObj);
+    dispatch(setSelectedShowtime(showtimeObj));
+    onNext();
+  };
+
+  const hasFullSelection = selectedDate && selectedTheater && selectedTime;
 
   return (
     <div className="space-y-6">
@@ -30,39 +88,47 @@ export const ShowtimeSelection = ({ movie, selectedShowtime, onShowtimeSelect })
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 gap-2">
-            {dates.map((date, index) => (
-              <Button
-                key={index}
-                variant={index === 0 ? "default" : "outline"}
-                className={index === 0 
-                  ? "bg-cinema-gold text-cinema-dark flex-col h-auto py-3"
-                  : "border-cinema-border hover:bg-muted-foreground/30 flex-col h-auto py-3"
-                }
-              >
-                <span className="text-xs">
-                  {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                </span>
-                <span className="text-lg font-bold">
-                  {date.getDate()}
-                </span>
-                <span className="text-xs">
-                  {date.toLocaleDateString('en-US', { month: 'short' })}
-                </span>
-              </Button>
-            ))}
+          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-2">
+            {next7Days.map((date, index) => {
+              const isSelected =
+                selectedDate?.toDateString() === date.toDateString();
+              return (
+                <Button
+                  key={index}
+                  onClick={() => handleDateSelect(date)}
+                  className={`flex-col h-auto py-3 w-full ${
+                    isSelected
+                      ? "bg-cinema-gold text-cinema-dark"
+                      : "border border-cinema-border bg-cinema-dark hover:bg-muted-foreground/20 text-foreground"
+                  }`}
+                >
+                  <span className="text-xs">
+                    {date.toLocaleDateString("en-US", { weekday: "short" })}
+                  </span>
+                  <span className="text-lg font-bold">{date.getDate()}</span>
+                  <span className="text-xs">
+                    {date.toLocaleDateString("en-US", { month: "short" })}
+                  </span>
+                </Button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
 
-      {/* Theater and Showtime Selection */}
+      {/* Theater + Time Selection */}
       <div className="space-y-4">
         {theaters.map((theater) => (
-          <Card key={theater.name} className="bg-gradient-card border-cinema-border">
+          <Card
+            key={theater.name}
+            className="bg-gradient-card border-cinema-border"
+          >
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-foreground">{theater.name}</CardTitle>
+                  <CardTitle className="text-foreground">
+                    {theater.name}
+                  </CardTitle>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4" />
                     {theater.distance}
@@ -76,23 +142,58 @@ export const ShowtimeSelection = ({ movie, selectedShowtime, onShowtimeSelect })
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
-                {movie.showtimes.map((time) => (
-                  <Button
-                    key={`${theater.name}-${time}`}
-                    variant={selectedShowtime === time ? "default" : "outline"}
-                    onClick={() => onShowtimeSelect(time)}
-                    className={selectedShowtime === time
-                      ? "bg-cinema-gold text-cinema-dark"
-                      : "border-cinema-border hover:bg-muted-foreground/20"
+                {selectedDate &&
+                groupedByDate[selectedDate.toLocaleDateString("en-CA")]
+                  ?.length > 0 ? (
+                  groupedByDate[selectedDate.toLocaleDateString("en-CA")].map(
+                    (time) => {
+                      const isActive =
+                        selectedTheater === theater.name &&
+                        selectedTime === time;
+                      return (
+                        <Button
+                          key={`${theater.name}-${time}`}
+                          onClick={() => handleTimeClick(theater, time)}
+                          className={`${
+                            isActive
+                              ? "bg-cinema-gold text-cinema-dark"
+                              : "border border-cinema-border hover:bg-muted-foreground/20 text-foreground bg-cinema-dark"
+                          }`}
+                        >
+                          {formatTo12Hour(time)}
+                        </Button>
+                      );
                     }
-                  >
-                    {time}
-                  </Button>
-                ))}
+                  )
+                ) : (
+                  <div className="col-span-2 text-center py-1 bg-cinema-dark text-base text-foreground border border-cinema-border rounded-md">
+                    Not available for this date.
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between pt-6">
+        <Button
+          variant="outline"
+          className="border-cinema-border hover:bg-cinema-purple/30"
+          onClick={() => navigate(-1)}
+        >
+          Back
+        </Button>
+        <Button
+          onClick={handleNext}
+          disabled={!hasFullSelection}
+          className={`bg-gradient-primary hover:shadow-glow px-4 ${
+            hasFullSelection ? "cursor-pointer" : " cursor-not-allowed"
+          }`}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

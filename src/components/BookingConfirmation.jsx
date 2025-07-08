@@ -1,38 +1,33 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  CreditCard,
-  Mail,
-  User,
-  Phone,
-  Calendar,
-  Clock,
-  MapPin,
-  Ticket,
-} from "lucide-react";
+import { Calendar, Clock, MapPin, Ticket, User } from "lucide-react";
 import { toast } from "sonner";
+import { formatRupee } from "@/lib/utils";
+import { bookTicket, buyTicket } from "@/services/paymentService";
+import { useSelector } from "react-redux";
 
-export const BookingConfirmation = ({
-  movie,
-  selectedSeats,
-  selectedShowtime,
-  onConfirm,
-  onBack,
-}) => {
+export const BookingConfirmation = ({ movie, onBack }) => {
   const [customerInfo, setCustomerInfo] = useState({
     name: "",
     email: "",
     phone: "",
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const navigate = useNavigate();
 
-  const totalPrice = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
-  const serviceFee = 2.99;
+  const { selectedSeats, selectedShowtime } = useSelector(
+    (state) => state.booking
+  );
+  const { user } = useSelector((state) => state.auth);
+  console.log(selectedSeats, selectedShowtime);
+  const totalPrice = selectedSeats.reduce((sum, s) => sum + (s.price || 0), 0);
+  const serviceFee = 59;
   const finalTotal = totalPrice + serviceFee;
 
   const handleConfirmBooking = async () => {
@@ -44,23 +39,34 @@ export const BookingConfirmation = ({
     }
 
     setIsProcessing(true);
+    try {
+      const show = {
+        id: `${movie.docId}_${selectedShowtime.date}T${
+          selectedShowtime.time.split(" ")[0]
+        }`,
+        title: movie.title,
+        poster: movie.poster,
+        theater: selectedShowtime.theater,
+        time: selectedShowtime.time,
+        date: selectedShowtime.date,
+        customerInfo,
+        total: finalTotal,
+        showDateTime: `${selectedShowtime.date} ${selectedShowtime.time}`,
+      };
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    toast("Booking Confirmed! 🎉", {
-      description: `Your tickets for ${movie.title} have been booked successfully!`,
-      icon: "🎫",
-      duration: 4000,
-    });
-    setIsProcessing(false);
-    onConfirm();
+      await buyTicket(show, selectedSeats, user, navigate);
+      // await bookTicket(null, show, selectedSeats, user, navigate, finalTotal);
+    } catch (err) {
+      toast.error("Payment failed", { description: err.message });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <div className="space-y-6">
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Booking Summary */}
+        {/* Summary */}
         <Card className="bg-gradient-card border-cinema-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
@@ -69,7 +75,7 @@ export const BookingConfirmation = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Movie Info */}
+            {/* Movie */}
             <div className="flex gap-4">
               <img
                 src={movie.poster}
@@ -81,20 +87,23 @@ export const BookingConfirmation = ({
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    {new Date().toLocaleDateString("en-US", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    {new Date(selectedShowtime.date).toLocaleDateString(
+                      "en-IN",
+                      {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    {selectedShowtime}
+                    {selectedShowtime?.time}
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    CinemaFlix Downtown
+                    {selectedShowtime?.theater}
                   </div>
                 </div>
               </div>
@@ -102,20 +111,20 @@ export const BookingConfirmation = ({
 
             <Separator className="bg-cinema-border" />
 
-            {/* Selected Seats */}
+            {/* Seats */}
             <div>
               <h4 className="font-semibold mb-2 text-foreground">
                 Selected Seats
               </h4>
               <div className="flex flex-wrap gap-2">
-                {selectedSeats.map((seat) => (
+                {selectedSeats.map((s) => (
                   <Badge
-                    key={seat.id}
+                    key={s.id}
                     variant="secondary"
                     className="bg-cinema-gold/20 text-cinema-gold border-cinema-gold/30"
                   >
-                    {seat.row}
-                    {seat.number} ({seat.type})
+                    {s.row}
+                    {s.number} ({s.type})
                   </Badge>
                 ))}
               </div>
@@ -123,34 +132,34 @@ export const BookingConfirmation = ({
 
             <Separator className="bg-cinema-border" />
 
-            {/* Price Breakdown */}
+            {/* Pricing */}
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
-                  Tickets ({selectedSeats.length}x)
+                  Tickets ({selectedSeats.length})
                 </span>
                 <span className="text-foreground">
-                  ${totalPrice.toFixed(2)}
+                  {formatRupee(totalPrice)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Service Fee</span>
                 <span className="text-foreground">
-                  ${serviceFee.toFixed(2)}
+                  {formatRupee(serviceFee)}
                 </span>
               </div>
               <Separator className="bg-cinema-border" />
               <div className="flex justify-between text-lg font-bold">
                 <span className="text-foreground">Total</span>
                 <span className="text-cinema-gold">
-                  ${finalTotal.toFixed(2)}
+                  {formatRupee(finalTotal)}
                 </span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Customer Information */}
+        {/* Form */}
         <div className="space-y-6">
           <Card className="bg-gradient-card border-cinema-border">
             <CardHeader>
@@ -168,11 +177,10 @@ export const BookingConfirmation = ({
                   onChange={(e) =>
                     setCustomerInfo({ ...customerInfo, name: e.target.value })
                   }
+                  placeholder="Your full name"
                   className="bg-cinema-card border-cinema-border text-foreground"
-                  placeholder="Enter your full name"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address *</Label>
                 <Input
@@ -182,11 +190,10 @@ export const BookingConfirmation = ({
                   onChange={(e) =>
                     setCustomerInfo({ ...customerInfo, email: e.target.value })
                   }
+                  placeholder="you@example.com"
                   className="bg-cinema-card border-cinema-border text-foreground"
-                  placeholder="Enter your email"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
@@ -196,29 +203,30 @@ export const BookingConfirmation = ({
                   onChange={(e) =>
                     setCustomerInfo({ ...customerInfo, phone: e.target.value })
                   }
+                  placeholder="10-digit phone"
                   className="bg-cinema-card border-cinema-border text-foreground"
-                  placeholder="Enter your phone number"
                 />
               </div>
             </CardContent>
           </Card>
-          {/* Action Buttons */}
+
+          {/* Buttons */}
           <div className="flex gap-4 justify-end">
             <Button
               variant="outline"
               onClick={onBack}
-              className="border-cinema-border hover:bg-cinema-card"
+              className="border-cinema-border hover:bg-cinema-purple/30 px-4"
             >
               Back to Seats
             </Button>
             <Button
               onClick={handleConfirmBooking}
               disabled={isProcessing}
-              className="bg-gradient-primary hover:shadow-glow transition-all duration-300 px-8"
+              className="bg-gradient-primary hover:shadow-glow px-4"
             >
               {isProcessing
-                ? "Processing..."
-                : `Confirm Booking - $${finalTotal.toFixed(2)}`}
+                ? "Processing…"
+                : `Confirm Booking – ${formatRupee(finalTotal)}`}
             </Button>
           </div>
         </div>
