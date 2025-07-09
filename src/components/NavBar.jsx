@@ -23,6 +23,7 @@ import {
 
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/redux/slices/authSlice";
+import icon from "@/assets/icon.png";
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -46,8 +47,8 @@ const NavBar = () => {
       <div className="flex items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-xl font-bold pl-2 md:pl-10">
-          <Ticket className="text-yellow-400 h-8 w-8" />
-          <span className="text-gradient text-2xl">Tickify</span>
+          <img src={icon} alt="" className="h-7"/>
+          <span className="text-gradient text-3xl">Tickify</span>
         </Link>
 
         {/* Right section */}

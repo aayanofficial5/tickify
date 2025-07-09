@@ -8,9 +8,8 @@ import {
   Image, // ✅ Add this
 } from "@react-pdf/renderer";
 import { formatTo12Hour } from "@/utils/formatTime";
-import logo from "@/assets/logo.png"; // ✅ Adjust the path as per your folder structure
+import logo from "@/assets/logo.png";
 
-// PDF Styles
 const styles = StyleSheet.create({
   page: {
     backgroundColor: "#111827",
@@ -22,8 +21,8 @@ const styles = StyleSheet.create({
   logo: {
     position: "absolute",
     bottom: 40,
-    height: 20,
-    width: 85,
+    height: 28,
+    width: 90,
     alignSelf: "center",
   },
   heading: {
@@ -69,7 +68,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Ticket Component
 export const TicketPDF = ({ booking }) => (
   <Document>
     <Page

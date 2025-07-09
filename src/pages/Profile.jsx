@@ -89,7 +89,7 @@ export default function Profile() {
     },
   });
 
-  /* -------------------- Load Profile & Stats -------------------- */
+  
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
@@ -135,7 +135,7 @@ export default function Profile() {
     return unsub;
   }, [form]);
 
-  /* --------------------------- Save edits --------------------------- */
+  
   const handleSave = async (values) => {
     setLoading(true);
     try {
@@ -167,7 +167,7 @@ export default function Profile() {
     }
   };
 
-  /* ----------------------- Delete account flow ----------------------- */
+  
   const handleDeleteAccount = async () => {
     setLoading(true);
     try {
@@ -439,10 +439,11 @@ export default function Profile() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="bg-cinema-dark hover:bg-gray-800 cursor-pointer"  disabled={loading}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 disabled={loading}
+                className="hover:opacity-60 cursor-pointer"
                 onClick={handleDeleteAccount}
               >
                 {loading ? "Deleting…" : "Delete"}

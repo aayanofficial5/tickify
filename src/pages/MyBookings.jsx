@@ -3,14 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Calendar,
-  Clock,
-  MapPin,
-  Ticket,
-  Download,
-  View,
-} from "lucide-react";
+import { Calendar, Clock, MapPin, Ticket, Download, View } from "lucide-react";
 import { toast } from "sonner";
 import NavBar from "@/components/NavBar";
 import { db } from "@/firebase";
@@ -22,18 +15,30 @@ import {
 } from "@/services/firebaseDatabase";
 import { useSelector } from "react-redux";
 import Loader from "@/components/Loader";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
-  const {user} = useSelector((state)=>state.auth);
+  const { user } = useSelector((state) => state.auth);
+  const [loading, setLoading] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(null);
 
   useEffect(() => {
     fetchBookings();
   }, []);
 
   const fetchBookings = async () => {
-    if(!user) return;
+    if (!user) return;
 
     try {
       const q = query(
@@ -91,19 +96,32 @@ export default function MyBookings() {
     }
   };
 
-  const handleCancelBooking = async (id) => {
-    await cancelBookingAndReleaseSeats(id);
+  const handleCancelBooking = async () => {
+    try{
+    setLoading(true);
+    await cancelBookingAndReleaseSeats(cancelOpen);
     fetchBookings();
+    }catch(error){
+      console.log(error);
+      toast.error(error.message);
+    }finally{
+      setLoading(false);
+      setCancelOpen(null);
+    }
   };
 
   if (!bookings) {
-      return (
-        <div className="min-h-screen">
-          <NavBar />
-          <Loader fullscreen="true" label1="Loading Bookings..." label2="Go Back"/>
-        </div>
-      );
-    }
+    return (
+      <div className="min-h-screen">
+        <NavBar />
+        <Loader
+          fullscreen="true"
+          label1="Loading Bookings..."
+          label2="Go Back"
+        />
+      </div>
+    );
+  }
 
   const BookingCard = ({ booking }) => (
     <Card className="bg-gradient-card border-cinema-border hover:shadow-premium transition-all duration-300">
@@ -154,11 +172,11 @@ export default function MyBookings() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <div>
-                  Seats:{" "}
-                  {booking?.seatDetails
-                    ?.map((s) => `${s.row}${s.number} (${s.type})`)
-                    .join(", ")}
-                    </div>
+                    Seats:{" "}
+                    {booking?.seatDetails
+                      ?.map((s) => `${s.row}${s.number} (${s.type})`)
+                      .join(", ")}
+                  </div>
                 </div>
                 <div className="text-lg font-bold text-cinema-gold">
                   Total: ₹{booking?.totalAmount?.toFixed(2)}
@@ -194,7 +212,7 @@ export default function MyBookings() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleCancelBooking(booking.id)}
+                    onClick={() => setCancelOpen(booking?.id)}
                     className="border-red-500/30 text-red-400 hover:bg-red-500/10"
                   >
                     Cancel Booking
@@ -308,6 +326,27 @@ export default function MyBookings() {
           </TabsContent>
         </Tabs>
       </div>
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will permanently cancel your booking and release the resevered seats.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-cinema-dark hover:bg-gray-800 cursor-pointer" disabled={loading}>Close</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={loading}
+              className="hover:opacity-60 cursor-pointer"
+              onClick={handleCancelBooking}
+            >
+              {loading ? "Cancelling…" : "Cancel Booking"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
