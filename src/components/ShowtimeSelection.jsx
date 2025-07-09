@@ -8,11 +8,7 @@ import { useDispatch } from "react-redux";
 import { setSelectedShowtime } from "@/redux/slices/bookingSlice";
 import { formatTo12Hour } from "@/utils/formatTime";
 
-export const ShowtimeSelection = ({
-  onNext,
-  selectedMovie,
-}) => {
-  
+export const ShowtimeSelection = ({ onNext, selectedMovie }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTheater, setSelectedTheater] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -28,7 +24,7 @@ export const ShowtimeSelection = ({
     const timeVal = dateObj.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
-      hour12:false,
+      hour12: false,
     });
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(timeVal);
@@ -42,11 +38,7 @@ export const ShowtimeSelection = ({
     return date;
   });
 
-  const theaters = [
-    { name: "CinemaFlix Downtown", distance: "0.5 miles" },
-    { name: "CinemaFlix Mall", distance: "1.2 miles" },
-    { name: "CinemaFlix North", distance: "2.8 miles" },
-  ];
+  const theaters = [{ name: "Pacific Mall", distance: "0.5 miles" }];
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);

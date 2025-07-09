@@ -8,13 +8,11 @@ import {
   Clock,
   MapPin,
   Ticket,
-  Star,
   Download,
   View,
 } from "lucide-react";
 import { toast } from "sonner";
 import NavBar from "@/components/NavBar";
-import { getAuth } from "firebase/auth";
 import { db } from "@/firebase";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { generateTicketPDF, handlePreviewPDF } from "@/services/ticketPDF";
@@ -22,25 +20,25 @@ import {
   cancelBookingAndReleaseSeats,
   markBookingAsCompletedIfExpired,
 } from "@/services/firebaseDatabase";
+import { useSelector } from "react-redux";
+import Loader from "@/components/Loader";
 
 export default function MyBookings() {
-  const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
-
-  const auth = getAuth();
-  const user = auth?.currentUser;
+  const {user} = useSelector((state)=>state.auth);
 
   useEffect(() => {
     fetchBookings();
   }, []);
 
   const fetchBookings = async () => {
-    if (!user) return;
+    if(!user) return;
 
     try {
       const q = query(
         collection(db, "bookings"),
-        where("userId", "==", user?.uid),
+        where("userId", "==", user?.id),
         orderBy("bookedAt", "desc")
       );
 
@@ -98,28 +96,37 @@ export default function MyBookings() {
     fetchBookings();
   };
 
+  if (!bookings) {
+      return (
+        <div className="min-h-screen">
+          <NavBar />
+          <Loader fullscreen="true" label1="Loading Bookings..." label2="Go Back"/>
+        </div>
+      );
+    }
+
   const BookingCard = ({ booking }) => (
     <Card className="bg-gradient-card border-cinema-border hover:shadow-premium transition-all duration-300">
       <CardContent className="p-6">
         <div className="flex gap-4">
           <img
-            src={booking.poster}
-            alt={booking.movieTitle}
+            src={booking?.poster}
+            alt={booking?.movieTitle}
             className="w-20 h-28 object-cover rounded border border-cinema-border"
           />
           <div className="flex-1 space-y-3">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-xl font-bold text-foreground">
-                  {booking.movieTitle}
+                  {booking?.movieTitle}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Payment ID: {booking.paymentId}
+                  Payment ID: {booking?.paymentId}
                 </p>
               </div>
-              <Badge className={getStatusColor(booking.status)}>
-                {booking.status.charAt(0).toUpperCase() +
-                  booking.status.slice(1)}
+              <Badge className={getStatusColor(booking?.status)}>
+                {booking?.status.charAt(0).toUpperCase() +
+                  booking?.status.slice(1)}
               </Badge>
             </div>
 
@@ -127,7 +134,7 @@ export default function MyBookings() {
               <div className="space-y-2 text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {new Date(booking.date).toLocaleDateString("en-IN", {
+                  {new Date(booking?.date).toLocaleDateString("en-IN", {
                     weekday: "long",
                     year: "numeric",
                     month: "long",
@@ -136,11 +143,11 @@ export default function MyBookings() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  {booking.time}
+                  {booking?.time}
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  {booking.theater}
+                  {booking?.theater}
                 </div>
               </div>
 
@@ -148,17 +155,17 @@ export default function MyBookings() {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <div>
                   Seats:{" "}
-                  {booking.seatDetails
+                  {booking?.seatDetails
                     ?.map((s) => `${s.row}${s.number} (${s.type})`)
                     .join(", ")}
                     </div>
                 </div>
                 <div className="text-lg font-bold text-cinema-gold">
-                  Total: ₹{booking.totalAmount?.toFixed(2)}
+                  Total: ₹{booking?.totalAmount?.toFixed(2)}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Booked on{" "}
-                  {new Date(booking.bookedAt?.toDate?.()).toLocaleDateString(
+                  {new Date(booking?.bookedAt?.toDate?.()).toLocaleDateString(
                     "en-IN"
                   )}
                 </div>
@@ -166,7 +173,7 @@ export default function MyBookings() {
             </div>
 
             <div className="flex gap-2 pt-2">
-              {booking.status === "confirmed" && (
+              {booking?.status === "confirmed" && (
                 <>
                   <Button
                     size="sm"
@@ -219,7 +226,7 @@ export default function MyBookings() {
           <Card className="bg-gradient-card border-cinema-border">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-cinema-gold">
-                {bookings.length}
+                {bookings?.length}
               </div>
               <div className="text-sm text-muted-foreground">
                 Total Bookings
@@ -229,7 +236,7 @@ export default function MyBookings() {
           <Card className="bg-gradient-card border-cinema-border">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-cinema-gold">
-                {bookings.filter((b) => b.status === "confirmed").length}
+                {bookings?.filter((b) => b.status === "confirmed").length}
               </div>
               <div className="text-sm text-muted-foreground">Upcoming</div>
             </CardContent>
@@ -237,7 +244,7 @@ export default function MyBookings() {
           <Card className="bg-gradient-card border-cinema-border">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-cinema-gold">
-                {bookings.filter((b) => b.status === "completed").length}
+                {bookings?.filter((b) => b.status === "completed").length}
               </div>
               <div className="text-sm text-muted-foreground">Watched</div>
             </CardContent>
@@ -247,7 +254,7 @@ export default function MyBookings() {
               <div className="text-2xl font-bold text-cinema-gold">
                 ₹
                 {bookings
-                  .reduce((sum, b) => sum + (b.totalAmount || 0), 0)
+                  ?.reduce((sum, b) => sum + (b.totalAmount || 0), 0)
                   .toFixed(0)}
               </div>
               <div className="text-sm text-muted-foreground">Total Spent</div>
@@ -270,16 +277,16 @@ export default function MyBookings() {
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)} (
                 {status === "all"
-                  ? bookings.length
-                  : bookings.filter((b) => b.status === status).length}
+                  ? bookings?.length
+                  : bookings?.filter((b) => b.status === status).length}
                 )
               </TabsTrigger>
             ))}
           </TabsList>
 
           <TabsContent value={filterStatus} className="space-y-4">
-            {filteredBookings.length > 0 ? (
-              filteredBookings.map((booking) => (
+            {filteredBookings?.length > 0 ? (
+              filteredBookings?.map((booking) => (
                 <BookingCard key={booking.id} booking={booking} />
               ))
             ) : (

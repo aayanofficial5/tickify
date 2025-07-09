@@ -56,6 +56,8 @@ import {
   Trash2,
 } from "lucide-react";
 import NavBar from "@/components/NavBar";
+import Loader from "@/components/Loader";
+import { useSelector } from "react-redux";
 
 /* ------------------------- Validation ------------------------- */
 const schema = z.object({
@@ -75,7 +77,8 @@ export default function Profile() {
   const [moviesWatched, setMoviesWatched] = useState(0);
   const [activeBookings, setActiveBookings] = useState(0);
   const [yearsMember, setYearsMember] = useState(0);
-
+  const {user} = useSelector((state)=>state.auth);
+  
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -149,6 +152,7 @@ export default function Profile() {
           phone: values.phone,
           location: values.location,
           bio: values.bio,
+          admin:"false",
         },
         { merge: true }
       );
@@ -200,9 +204,9 @@ export default function Profile() {
 
   if (!initialValues) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen">
         <NavBar />
-        <span className="text-muted-foreground">Loading profile…</span>
+        <Loader fullscreen="true" label1="Loading Profile..." label2="Go Back"/>
       </div>
     );
   }
@@ -216,7 +220,7 @@ export default function Profile() {
           <CardHeader className="flex items-start justify-between">
             <div>
               <CardTitle className="text-2xl font-bold text-gradient">
-                My Profile
+              {user.admin&&"Admin "}Profile
               </CardTitle>
               <CardDescription>
                 {isEditing
@@ -353,32 +357,32 @@ export default function Profile() {
               <div className="space-y-4">
                 <ReadOnlyRow
                   label="Full Name"
-                  value={initialValues.fullName}
+                  value={initialValues?.fullName}
                   icon={User}
                 />
                 <ReadOnlyRow
                   label="Email"
-                  value={initialValues.email}
+                  value={initialValues?.email}
                   icon={Mail}
                 />
                 <ReadOnlyRow
                   label="Phone"
-                  value={initialValues.phone}
+                  value={initialValues?.phone}
                   icon={Phone}
                 />
                 <ReadOnlyRow
                   label="Location"
-                  value={initialValues.location}
+                  value={initialValues?.location}
                   icon={MapPin}
                 />
-                <ReadOnlyRow label="Bio" value={initialValues.bio} />
+                <ReadOnlyRow label="Bio" value={initialValues?.bio} />
               </div>
             )}
           </CardContent>
         </Card>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+        {!(user?.admin)&&<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
           <Card className="bg-cinema-card border-cinema-border">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-cinema-gold mb-1">
@@ -403,7 +407,7 @@ export default function Profile() {
               <div className="text-sm text-muted-foreground">Years Member</div>
             </CardContent>
           </Card>
-        </div>
+        </div>}
 
         {/* Danger Zone */}
         <Card className="bg-cinema-card border-cinema-border shadow-card-cinema mt-6">

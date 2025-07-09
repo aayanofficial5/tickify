@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { setSelectedMovie } from "@/redux/slices/bookingSlice";
 import { Clock, Star, Play, Calendar } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 // Optional: map genre IDs to names (partial example)
@@ -31,6 +31,7 @@ const genreMap = {
 export const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
 
   const handleBookNow = (e) => {
     e.stopPropagation();
@@ -99,12 +100,12 @@ export const MovieCard = ({ movie }) => {
           <div className="text-cinema-gold font-bold text-lg transform group-hover:scale-110 transition-transform duration-300">
             ₹{parseInt(movie?.price)||100}
           </div>
-          <Button
+          {!(user?.admin)&&<Button
             onClick={handleBookNow}
             className="btn-gradient hover:shadow-glow transition-all duration-300 transform hover:scale-105"
           >
             Book Now
-          </Button>
+          </Button>}
         </div>
       </CardContent>
     </Card>

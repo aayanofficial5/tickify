@@ -1,22 +1,3 @@
-// export interface Booking {
-//   id: string;
-//   movieId: string;
-//   movieTitle: string;
-//   moviePoster: string;
-//   date: string;
-//   showtime: string;
-//   seats: {
-//     id: string;
-//     row: string;
-//     number: number;
-//     type: "standard" | "premium" | "vip";
-//   }[];
-//   totalPrice: number;
-//   status: "confirmed" | "cancelled" | "completed";
-//   theater: string;
-//   bookingDate: string;
-//   confirmationCode: string;
-// }
 
 export const sampleBookings=[
   {

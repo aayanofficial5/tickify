@@ -22,6 +22,7 @@ export const MovieDetail = () => {
   const [trailerKey, setTrailerKey] = useState(null);
 
   const { selectedMovie } = useSelector((state) => state.booking);
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -162,13 +163,13 @@ export const MovieDetail = () => {
                 </span>
                 <span className="text-muted-foreground ml-2">per ticket</span>
               </div>
-              <Button
+              {!(user?.admin)&&<Button
                 onClick={handleBookNow}
                 size="lg"
                 className="btn-gradient hover:shadow-glow transition-all duration-300 px-8"
               >
                 Book Tickets Now
-              </Button>
+              </Button>}
             </div>
           </div>
         </div>

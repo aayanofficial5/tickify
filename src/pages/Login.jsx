@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { auth } from "../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,13 +10,14 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { login } from "@/redux/slices/authSlice";
 
-const Login = () => {
+const Login = ({ isAdmin }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -28,6 +30,19 @@ const Login = () => {
 
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
+      let admin = false;
+      // 🔐 Check admin permission if it's an admin route
+      if (isAdmin) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists() || userDoc.data()?.admin !== "true") {
+          await signOut(auth);
+          toast.error("Access denied. Admins only.");
+          navigate("/auth?mode=login");
+          return;
+        }
+        admin = true;
+      }
+
       const {
         uid: id,
         email: userEmail,
@@ -42,9 +57,10 @@ const Login = () => {
         displayName,
         photoURL,
         emailVerified,
+        admin,
       };
 
-      dispatch(login({ user: userData, token: await user.getIdToken(true) })); // get fresh token from firebase on each login
+      dispatch(login({ user: userData, token: await user.getIdToken(true) }));
 
       toast.success("Logged in successfully!");
       navigate("/");
