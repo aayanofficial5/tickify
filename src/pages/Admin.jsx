@@ -9,7 +9,6 @@ import {
   getDocs,
   updateDoc,
   doc,
-  arrayUnion,
 } from "firebase/firestore";
 import { ensureSeatsExist } from "@/services/ensureSeatExistService";
 import NavBar from "@/components/NavBar";
@@ -21,10 +20,12 @@ export const Admin = () => {
   const [tmdbMovies, setTmdbMovies] = useState([]);
   const [movies, setMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
-  const [newShowPrice, setNewShowPrice] = useState(100);
+  const [newShowPrice, setNewShowPrice] = useState();
   const [newShowDateTime, setNewShowDateTime] = useState("");
   const [newShowDateTimes, setNewShowDateTimes] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
   useEffect(() => {
     const fetchTMDB = async () => {
       try {
@@ -38,7 +39,7 @@ export const Admin = () => {
     const fetchMovies = async () => {
       const snap = await getDocs(collection(db, "movies"));
       const movieList = [];
-      snap.forEach((doc) => movieList.push({ id: doc.id, ...doc.data() }));
+      snap.forEach((doc) => movieList.push({ ...doc.data(), id: doc.id }));
       setMovies(movieList);
     };
 
@@ -60,26 +61,28 @@ export const Admin = () => {
     setNewShowDateTimes(newShowDateTimes.filter((item) => item !== dt));
   };
 
-  const handleAddMovieWithShowtime = async (movie) => {
+  const handleAddOrEditMovie = async (movie) => {
     if (!movie || newShowDateTimes.length === 0 || !newShowPrice) {
       toast.error("Please select at least one date-time and a price.");
       return;
     }
 
     const existingMovie = movies.find((m) => m.title === movie.title);
+    setIsAdding(true);
 
     if (existingMovie) {
-      const newTimes = newShowDateTimes.filter(
-        (dt) => !existingMovie.showtimes.includes(dt)
-      );
-      if (newTimes.length === 0) {
-        toast.error("All selected showtimes already exist.");
-        return;
-      }
-      setIsAdding(true);
       const movieDoc = doc(db, "movies", existingMovie.id);
+      const existingShowtimes = Array.isArray(existingMovie.showtimes)
+        ? existingMovie.showtimes
+        : [];
+
+      const newTimes = newShowDateTimes.filter(
+        (dt) => !existingShowtimes.includes(dt)
+      );
+
       await updateDoc(movieDoc, {
-        showtimes: arrayUnion(...newTimes),
+        showtimes: newShowDateTimes,
+        price: parseInt(newShowPrice),
       });
 
       for (const dt of newTimes) {
@@ -92,13 +95,16 @@ export const Admin = () => {
       setMovies(
         movies.map((m) =>
           m.id === existingMovie.id
-            ? { ...m, showtimes: [...m.showtimes, ...newTimes] }
+            ? {
+                ...m,
+                showtimes: [...newShowDateTimes],
+                price: parseInt(newShowPrice),
+              }
             : m
         )
       );
-      toast.success("Showtimes added to existing movie");
+      toast.success("Showtimes updated for existing movie");
     } else {
-      setIsAdding(true);
       const newMovie = {
         id: movie.id,
         title: movie.title,
@@ -115,7 +121,7 @@ export const Admin = () => {
         adult: movie.adult,
         video: movie.video,
         showtimes: newShowDateTimes,
-        price: parseInt(newShowPrice) || 100,
+        price: parseInt(newShowPrice),
       };
 
       const movieRef = await addDoc(collection(db, "movies"), newMovie);
@@ -126,13 +132,12 @@ export const Admin = () => {
 
       setMovies([...movies, { id: movieRef.id, ...newMovie }]);
       toast.success("New movie added with showtimes");
-      setIsAdding(false);
     }
 
+    setIsAdding(false);
+    setSelectedMovie(null);
     setNewShowDateTimes([]);
     setNewShowDateTime("");
-    setNewShowPrice(100);
-    setSelectedMovie(null);
   };
 
   return (
@@ -147,35 +152,49 @@ export const Admin = () => {
           Now Playing Movies
         </h2>
         <div className="flex overflow-x-auto gap-4 pb-4">
-          {tmdbMovies.map((movie) => (
-            <div key={movie.id} className="w-40 flex-shrink-0 text-white">
-              <img
-                src={`${IMG_URL}${movie.poster_path}`}
-                className="rounded-md mb-2"
-                alt={movie.title}
-              />
-              <p className="font-semibold text-sm truncate">{movie.title}</p>
-              <p className="text-xs text-muted-foreground">
-                {movie.release_date}
-              </p>
-              <p className="text-xs text-pink-400">
-                ⭐ {movie.vote_average.toFixed(1)} | {movie.vote_count} Votes
-              </p>
-              <Button
-                size="sm"
-                className="mt-2 w-full bg-gradient-primary"
-                onClick={() => setSelectedMovie(movie)}
-              >
-                Add Show
-              </Button>
-            </div>
-          ))}
+          {tmdbMovies.map((movie) => {
+            const existing = movies.find((m) => m.title === movie.title);
+            return (
+              <div key={movie.id} className="w-40 flex-shrink-0 text-white">
+                <img
+                  src={`${IMG_URL}${movie.poster_path}`}
+                  className="rounded-md mb-2"
+                  alt={movie.title}
+                />
+                <p className="font-semibold text-sm truncate">{movie.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {movie.release_date}
+                </p>
+                <p className="text-xs text-pink-400">
+                  ⭐ {movie.vote_average.toFixed(1)} | {movie.vote_count} Votes
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-2 w-full bg-gradient-primary"
+                  onClick={() => {
+                    setSelectedMovie(movie);
+                    if (existing) {
+                      setNewShowPrice(existing.price);
+                      setNewShowDateTimes(existing.showtimes || []);
+                      setIsEditing(true);
+                    } else {
+                      setNewShowDateTimes([]);
+                      setIsEditing(false);
+                    }
+                  }}
+                >
+                  {existing ? "Edit Show" : "Add Show"}
+                </Button>
+              </div>
+            );
+          })}
         </div>
 
         {selectedMovie && (
           <div className="mt-6 p-6 bg-gradient-card rounded-lg border border-cinema-border w-fit">
             <h3 className="text-lg font-semibold text-white mb-2">
-              {selectedMovie.title} - Add Showtimes
+              {selectedMovie.title} -{" "}
+              {isEditing ? "Edit Showtimes" : "Add Showtimes"}
             </h3>
             <label htmlFor="price" className="text-sm">
               Show Price
@@ -188,7 +207,7 @@ export const Admin = () => {
               className="mb-2 text-foreground bg-cinema-dark border-cinema-border"
               id="price"
             />
-            <label htmlFor="dateandtime" className="text-sm ">
+            <label htmlFor="dateandtime" className="text-sm">
               Select Date-Time
             </label>
             <div className="flex gap-2 mb-2">
@@ -237,9 +256,15 @@ export const Admin = () => {
             <Button
               disabled={isAdding}
               className="bg-gradient-primary"
-              onClick={() => handleAddMovieWithShowtime(selectedMovie)}
+              onClick={() => handleAddOrEditMovie(selectedMovie)}
             >
-              {isAdding ? "Adding Show..." : "Add Show"}
+              {isAdding
+                ? isEditing
+                  ? "Updating..."
+                  : "Adding Show..."
+                : isEditing
+                ? "Update Show"
+                : "Add Show"}
             </Button>
             <Button
               variant="outline"

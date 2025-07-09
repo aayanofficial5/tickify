@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import icon  from "@/assets/icon.png";
 
 const Auth = () => {
   const location = useLocation();
@@ -30,10 +31,11 @@ const Auth = () => {
         isLogin ? "pb-50" : "pb-23"
       }`}
     >
-      <div className="text-center absolute top-12">
-        <h1 className="text-4xl font-extrabold text-gradient flex items-center justify-center gap-2">
-          <span>🎟️</span> Tickify
-        </h1>
+      <div className="flex flex-col items-center justify-center gap-2 absolute top-13">
+        <Link to="/" className="flex items-center gap-2 font-bold">
+          <img src={icon} alt="" className="h-8" />
+          <span className="text-gradient text-4xl">Tickify</span>
+        </Link>
         <p className="text-sm text-gray-400 mt-1">
           {isAdminRoute
             ? "Admin login panel"

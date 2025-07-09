@@ -6,17 +6,37 @@ import { toast } from "sonner";
 export const fetchMoviesFromFirestore = async () => {
   try {
     const snapshot = await getDocs(collection(db, "movies"));
-    const movies = snapshot.docs.map((doc) => ({
+    const now = new Date();
+
+    const allMovies = snapshot.docs.map((doc) => ({
       docId: doc.id,
       ...doc.data(),
     }));
-    // console.log(movies);
-    return movies;
+
+    // 1. Filter movies that have at least one future showtime
+    const upcomingMovies = allMovies.filter((movie) =>
+      Array.isArray(movie.showtimes) &&
+      movie.showtimes.some((time) => new Date(time) > now)
+    );
+
+    // 2. If we have at least 5 upcoming movies, return them
+    if (upcomingMovies.length >= 5) return upcomingMovies;
+
+    // 3. Otherwise, get fallback movies (recent ones that may not have future showtimes)
+    const fallbackMovies = allMovies
+      .filter((movie) => !upcomingMovies.includes(movie)) // avoid duplicates
+      .sort((a, b) => new Date(b.release_date) - new Date(a.release_date)); // newest first
+
+    // 4. Combine upcoming with fallback to make at least 5
+    const combined = [...upcomingMovies, ...fallbackMovies.slice(0, 5 - upcomingMovies.length)];
+
+    return combined;
   } catch (error) {
     console.error("Error fetching movies from Firestore:", error);
     return [];
   }
 };
+
 
 export const cancelBookingAndReleaseSeats = async (bookingId) => {
   try {

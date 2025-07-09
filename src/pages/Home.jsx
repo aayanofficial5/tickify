@@ -104,7 +104,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-4 bg-[rgb(17,19,23)]">
+      <section className="py-16 px-4 my-10">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard

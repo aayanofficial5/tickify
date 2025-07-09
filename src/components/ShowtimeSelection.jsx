@@ -15,7 +15,9 @@ export const ShowtimeSelection = ({ onNext, selectedMovie }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const availableTimes = selectedMovie?.showtimes || [];
+  const availableTimes = (selectedMovie?.showtimes || []).filter((datetime) => {
+    return new Date(datetime) > new Date();
+  });
 
   // Group showtimes by date
   const groupedByDate = availableTimes.reduce((acc, datetime) => {

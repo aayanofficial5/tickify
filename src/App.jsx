@@ -8,6 +8,7 @@ import { Booking } from "./pages/Booking";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import { Admin } from "./pages/Admin";
+import { Footer } from "./components/Footer";
 
 const App = () => {
   return (
@@ -25,6 +26,7 @@ const App = () => {
           <Route path="/admin-dashboard" element={<Admin/>}/>
         </Route>
       </Routes>
+      <Footer/>
     </div>
   );
 };
