@@ -3,7 +3,14 @@
 **Tickify** is a full-stack ticket booking web application built using the **MERN stack** (MongoDB, Express.js, React.js, Node.js) and **Firebase**, integrated with Razorpay for secure payments. It offers a seamless, responsive, and modern user experience for browsing movies, selecting showtimes, booking seats, and managing bookings — all in one place.
 
 ---
+# 🔐 Admin Credentials
 
+Use the following credentials to log in as an **Admin** in the Ticket Booking Application:
+
+- **Admin Email:** `admin@gmail.com`
+- **Password:** `admin1234`
+
+---
 ## 🚀 Features
 
 ### 👤 User Features
@@ -18,9 +25,8 @@
 
 ### 👨‍💼 Admin Features
 - 🔒 Admin login with role-based access.
-- 🧾 View all bookings from all users.
-- 📊 Access to booking statistics (e.g., active, confirmed, pending).
-
+- 🧾 Admin Dashboard to add/edit shows.
+- 
 ---
 
 ## 🖼️ UI/UX
