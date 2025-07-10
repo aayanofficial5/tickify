@@ -26,7 +26,6 @@ Use the following credentials to log in as an **Admin** in the Ticket Booking Ap
 ### 👨‍💼 Admin Features
 - 🔒 Admin login with role-based access.
 - 🧾 Admin Dashboard to add/edit shows.
-- 
 ---
 
 ## 🖼️ UI/UX
