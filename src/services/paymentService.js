@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { storeBooking, bookSeatsInFirestore } from "./bookingService";
+import { bookSeatsInFirestore, storeBooking } from "./firebaseDatabase";
 
 function loadScript(src) {
   return new Promise((resolve) => {

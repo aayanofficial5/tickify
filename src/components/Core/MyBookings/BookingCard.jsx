@@ -1,9 +1,9 @@
-import { generateTicketPDF, handlePreviewPDF } from "@/services/ticketPDF";
 import { toast } from "sonner";
 import { Calendar, Clock, MapPin, Download, View } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { generateTicketPDF, handlePreviewPDF } from "./PDFGenerator";
 
 export const BookingCard = ({ booking, setCancelOpen }) => {
   const getStatusColor = (status) => {

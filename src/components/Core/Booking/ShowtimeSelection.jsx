@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { setSelectedShowtime } from "@/redux/slices/bookingSlice";
-import { formatTo12Hour } from "@/utils/formatTime";
+import { formatTo12Hour } from "@/utils/formatter";
 
 export const ShowtimeSelection = ({ onNext, selectedMovie }) => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -28,11 +28,16 @@ export const ShowtimeSelection = ({ onNext, selectedMovie }) => {
       minute: "2-digit",
       hour12: false,
     });
+
     if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(timeVal);
+
+    acc[dateKey].push({
+      raw: dateObj, // Save the full Date object for accurate sorting
+      time: timeVal, // Display version
+    });
+
     return acc;
   }, {});
-  // console.log(groupedByDate);
 
   const next7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
@@ -139,8 +144,9 @@ export const ShowtimeSelection = ({ onNext, selectedMovie }) => {
                 {selectedDate &&
                 groupedByDate[selectedDate.toLocaleDateString("en-CA")]
                   ?.length > 0 ? (
-                  groupedByDate[selectedDate.toLocaleDateString("en-CA")].map(
-                    (time) => {
+                  groupedByDate[selectedDate.toLocaleDateString("en-CA")]
+                    ?.sort((a, b) => a.raw - b.raw)
+                    .map(({ time }) => {
                       const isActive =
                         selectedTheater === theater.name &&
                         selectedTime === time;
@@ -148,7 +154,7 @@ export const ShowtimeSelection = ({ onNext, selectedMovie }) => {
                         <Button
                           key={`${theater.name}-${time}`}
                           onClick={() => handleTimeClick(theater, time)}
-                          className={`col-span-2 s sm:col-span-1 ${
+                          className={`col-span-2 sm:col-span-1 ${
                             isActive
                               ? "bg-cinema-gold text-cinema-dark"
                               : "border border-cinema-border hover:bg-muted-foreground/20 text-foreground bg-cinema-dark"
@@ -157,8 +163,7 @@ export const ShowtimeSelection = ({ onNext, selectedMovie }) => {
                           {formatTo12Hour(time)}
                         </Button>
                       );
-                    }
-                  )
+                    })
                 ) : (
                   <div className="col-span-4 sm:col-span-3 md:col-span-2 text-center py-1 bg-cinema-dark text-base text-foreground border border-cinema-border rounded-md">
                     Not available for this date.

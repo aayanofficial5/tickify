@@ -15,7 +15,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -55,8 +54,8 @@ import {
   X,
   Trash2,
 } from "lucide-react";
-import NavBar from "@/components/NavBar";
-import Loader from "@/components/Loader";
+import NavBar from "@/components/Common/NavBar";
+import Loader from "@/components/Common/Loader";
 import { useSelector } from "react-redux";
 
 /* ------------------------- Validation ------------------------- */
@@ -77,8 +76,8 @@ export default function Profile() {
   const [moviesWatched, setMoviesWatched] = useState(0);
   const [activeBookings, setActiveBookings] = useState(0);
   const [yearsMember, setYearsMember] = useState(0);
-  const {user} = useSelector((state)=>state.auth);
-  
+  const { user } = useSelector((state) => state.auth);
+
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -89,7 +88,6 @@ export default function Profile() {
     },
   });
 
-  
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
@@ -135,27 +133,38 @@ export default function Profile() {
     return unsub;
   }, [form]);
 
-  
   const handleSave = async (values) => {
     setLoading(true);
     try {
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
 
+      // Update displayName if changed
       if (values.fullName !== user.displayName) {
         await updateProfile(user, { displayName: values.fullName });
       }
 
-      await setDoc(
-        doc(db, "users", user.uid),
-        {
-          phone: values.phone,
-          location: values.location,
-          bio: values.bio,
-          admin:"false",
-        },
-        { merge: true }
-      );
+      // Reference to user doc
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      // Create base update object
+      const updateData = {
+        phone: values.phone,
+        location: values.location,
+        bio: values.bio,
+      };
+
+      // If admin field does not exist, set it to "false"
+      if (
+        !userSnap.exists() ||
+        !Object.prototype.hasOwnProperty.call(userSnap.data(), "admin")
+      ) {
+        updateData.admin = "false";
+      }
+
+      // Merge update into Firestore
+      await setDoc(userRef, updateData, { merge: true });
 
       toast.success("Profile updated");
       setIsEditing(false);
@@ -167,7 +176,6 @@ export default function Profile() {
     }
   };
 
-  
   const handleDeleteAccount = async () => {
     setLoading(true);
     try {
@@ -206,7 +214,11 @@ export default function Profile() {
     return (
       <div className="min-h-screen">
         <NavBar />
-        <Loader fullscreen="true" label1="Loading Profile..." label2="Go Back"/>
+        <Loader
+          fullscreen="true"
+          label1="Loading Profile..."
+          label2="Go Back"
+        />
       </div>
     );
   }
@@ -220,7 +232,7 @@ export default function Profile() {
           <CardHeader className="flex items-start justify-between">
             <div>
               <CardTitle className="text-2xl font-bold text-gradient">
-              {user.admin&&"Admin "}Profile
+                {user.admin && "Admin "}Profile
               </CardTitle>
               <CardDescription>
                 {isEditing
@@ -382,32 +394,40 @@ export default function Profile() {
         </Card>
 
         {/* Stats */}
-        {!(user?.admin)&&<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-          <Card className="bg-cinema-card border-cinema-border">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-cinema-gold mb-1">
-                {moviesWatched}
-              </div>
-              <div className="text-sm text-muted-foreground">Show Purchased</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-cinema-card border-cinema-border">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-cinema-gold mb-1">
-                {activeBookings}
-              </div>
-              <div className="text-sm text-muted-foreground">Active Bookings</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-cinema-card border-cinema-border">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-cinema-gold mb-1">
-                {yearsMember}
-              </div>
-              <div className="text-sm text-muted-foreground">Years Member</div>
-            </CardContent>
-          </Card>
-        </div>}
+        {!user?.admin && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            <Card className="bg-cinema-card border-cinema-border">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-cinema-gold mb-1">
+                  {moviesWatched}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Show Purchased
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-cinema-card border-cinema-border">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-cinema-gold mb-1">
+                  {activeBookings}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Active Bookings
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-cinema-card border-cinema-border">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-cinema-gold mb-1">
+                  {yearsMember}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Years Member
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Danger Zone */}
         <Card className="bg-cinema-card border-cinema-border shadow-card-cinema mt-6">
@@ -439,8 +459,18 @@ export default function Profile() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="bg-gray-700 hover:bg-gray-800 cursor-pointer"  disabled={loading}>Cancel</AlertDialogCancel>
-              <AlertDialogCancel className="absolute hover:bg-red-500 top-1 right-1" disabled={loading}><X/></AlertDialogCancel>
+              <AlertDialogCancel
+                className="bg-gray-700 hover:bg-gray-800 cursor-pointer"
+                disabled={loading}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogCancel
+                className="absolute hover:bg-red-500 top-1 right-1"
+                disabled={loading}
+              >
+                <X />
+              </AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 disabled={loading}

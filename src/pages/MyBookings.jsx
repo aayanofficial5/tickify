@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Ticket, X } from "lucide-react";
 import { toast } from "sonner";
-import NavBar from "@/components/NavBar";
+import NavBar from "@/components/Common/NavBar";
 import { db } from "@/firebase";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import {
@@ -11,7 +11,7 @@ import {
   markBookingAsCompletedIfExpired,
 } from "@/services/firebaseDatabase";
 import { useSelector } from "react-redux";
-import Loader from "@/components/Loader";
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -22,7 +22,8 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { BookingCard } from "@/components/BookingCard";
+import { BookingCard } from "@/components/Core/MyBookings/BookingCard";
+import Loader from '@/components/Common/Loader';
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState(null);
@@ -78,8 +79,6 @@ export default function MyBookings() {
     }
   };
 
-
-
   if (!bookings) {
     return (
       <div className="min-h-screen">
@@ -92,7 +91,6 @@ export default function MyBookings() {
       </div>
     );
   }
-
 
   return (
     <div className="min-h-screen bg-gradient-dark">
@@ -173,7 +171,11 @@ export default function MyBookings() {
           <TabsContent value={filterStatus} className="space-y-4">
             {filteredBookings?.length > 0 ? (
               filteredBookings?.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} setCancelOpen={setCancelOpen}/>
+                <BookingCard
+                  key={booking.id}
+                  booking={booking}
+                  setCancelOpen={setCancelOpen}
+                />
               ))
             ) : (
               <Card className="bg-gradient-card border-cinema-border">
@@ -199,12 +201,23 @@ export default function MyBookings() {
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will permanently cancel your booking and release the resevered seats.
+              This action will permanently cancel your booking and release the
+              resevered seats.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-700 hover:bg-gray-800 cursor-pointer" disabled={loading}>Close</AlertDialogCancel>
-            <AlertDialogCancel className="absolute top-1 right-1 hover:bg-red-500" disabled={loading}><X/></AlertDialogCancel>
+            <AlertDialogCancel
+              className="bg-gray-700 hover:bg-gray-800 cursor-pointer"
+              disabled={loading}
+            >
+              Close
+            </AlertDialogCancel>
+            <AlertDialogCancel
+              className="absolute top-1 right-1 hover:bg-red-500"
+              disabled={loading}
+            >
+              <X />
+            </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               disabled={loading}

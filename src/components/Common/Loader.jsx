@@ -1,10 +1,13 @@
-// src/components/ui/DotLoader.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
 import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-const Loader = ({ label1 = "Loading...", label2 = "Back to movies" ,fullscreen = true }) => {
+const Loader = ({
+  label1 = "Loading...",
+  label2 = "Back to movies",
+  fullscreen = true,
+}) => {
   const navigate = useNavigate();
   return (
     <div
@@ -20,7 +23,7 @@ const Loader = ({ label1 = "Loading...", label2 = "Back to movies" ,fullscreen =
         <span className="h-5 w-5 rounded-full bg-primary animate-bounce" />
       </div>
       <p className="mt-2 text-base text-muted-foreground">{label1}</p>
-      <Button onClick={() => navigate(-1)} className="mt-4 cursor-pointer">
+      <Button onClick={() => navigate("/")} className="mt-4 cursor-pointer">
         <ArrowLeft /> {label2}
       </Button>
     </div>

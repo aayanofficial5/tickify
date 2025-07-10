@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { auth, db } from "../firebase";
+import { auth, db } from "../../../firebase";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
@@ -34,6 +34,7 @@ const Login = ({ isAdmin }) => {
       // 🔐 Check admin permission if it's an admin route
       if (isAdmin) {
         const userDoc = await getDoc(doc(db, "users", user.uid));
+        console.log(userDoc?.data());
         if (!userDoc.exists() || userDoc.data()?.admin !== "true") {
           await signOut(auth);
           toast.error("Access denied. Admins only.");

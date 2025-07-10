@@ -1,5 +1,5 @@
-import { MovieCard } from "@/components/MovieCard";
-import NavBar from "@/components/NavBar";
+import { MovieCard } from "@/components/Core/Home/MovieCard";
+import NavBar from "@/components/Common/NavBar";
 import { sampleMovies } from "@/data/movies";
 import { resetBooking, setSelectedMovie } from "@/redux/slices/bookingSlice";
 import { fetchMoviesFromFirestore } from "@/services/firebaseDatabase";
@@ -12,7 +12,6 @@ export default function Home() {
   const { user } = useSelector((state) => state.auth);
   const [movies, setMovies] = useState([]);
   const dispatch = useDispatch();
-  
 
   async function fetchMovies() {
     const result = await fetchMoviesFromFirestore();
@@ -86,13 +85,12 @@ export default function Home() {
               today for the ultimate cinematic experience.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 md:gap-6">
             {movies?.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>
-          
 
           {movies?.length === 0 && (
             <div className="text-center py-12">

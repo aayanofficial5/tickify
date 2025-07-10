@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { Button } from "@/components/ui/button";
-import { SeatSelection } from "@/components/Booking/SeatSelection";
-import { BookingConfirmation } from "@/components/Booking/BookingConfirmation";
-import { ShowtimeSelection } from "@/components/Booking/ShowtimeSelection";
-import NavBar from "@/components/NavBar";
+import { SeatSelection } from "@/components/Core/Booking/SeatSelection";
+import { BookingConfirmation } from "@/components/Core/Booking/BookingConfirmation";
+import { ShowtimeSelection } from "@/components/Core/Booking/ShowtimeSelection";
+import NavBar from "@/components/Common/NavBar";
 import { IMG_URL } from "@/utils/constants";
 import { nextStep, prevStep } from "@/redux/slices/bookingSlice";
-import RenderSteps from "@/components/Booking/RenderSteps";
-import Loader from "@/components/Loader";
-
+import RenderSteps from "@/components/Core/Booking/RenderSteps";
+import Loader from '@/components/Common/Loader';
 const TMDB_API = import.meta.env.VITE_TMDB_API_TOKEN;
 const BASE_URL = "https://api.themoviedb.org/3";
 
@@ -19,7 +17,9 @@ export const Booking = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { step, selectedMovie, selectedShowtime } = useSelector((state) => state.booking);
+  const { step, selectedMovie, selectedShowtime } = useSelector(
+    (state) => state.booking
+  );
   const { user } = useSelector((state) => state.auth);
 
   const [movie, setMovie] = useState(null);
@@ -61,7 +61,10 @@ export const Booking = () => {
       <div className="min-h-screen bg-gradient-dark">
         <NavBar />
         <div className="container mx-auto px-4 py-16 text-center">
-          <Loader label1="Loading Show times..." label2="Back to Movie Details"/>
+          <Loader
+            label1="Loading Show times..."
+            label2="Back to Movie Details"
+          />
         </div>
       </div>
     );
@@ -71,13 +74,16 @@ export const Booking = () => {
     <div className="min-h-screen bg-gradient-dark px-4 sm:px-6 md:px-10 lg:px-20">
       <NavBar />
       <div className="mx-auto max-w-6xl px-2 sm:px-4 py-6 sm:py-8">
-        <RenderSteps/>
+        <RenderSteps />
 
         {/* Movie Info */}
         <div className="text-center mb-10 px-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">{movie?.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+            {movie?.title}
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            {movie?.genre.join(", ")} • {movie?.duration} min • {movie?.rating}/10
+            {movie?.genre.join(", ")} • {movie?.duration} min • {movie?.rating}
+            /10
           </p>
         </div>
 
@@ -95,7 +101,9 @@ export const Booking = () => {
               moviePrice={parseInt(movie.price)}
               onBack={() => dispatch(prevStep())}
               onNext={() => dispatch(nextStep())}
-              showtimeId={`${selectedMovie.docId}_${selectedShowtime.date}T${selectedShowtime.time.split(" ")[0]}`}
+              showtimeId={`${selectedMovie.docId}_${selectedShowtime.date}T${
+                selectedShowtime.time.split(" ")[0]
+              }`}
               userId={user.id}
             />
           )}

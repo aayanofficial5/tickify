@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import Login from "./Login";
-import Signup from "./SignUp";
+import Login from "../components/Core/Auth/Login";
+import Signup from "../components/Core/Auth/SignUp";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";

@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Image, // ✅ Add this
 } from "@react-pdf/renderer";
-import { formatTo12Hour } from "@/utils/formatTime";
+import { formatTo12Hour } from "@/utils/formatter";
 import logo from "@/assets/logo.png";
 
 const styles = StyleSheet.create({

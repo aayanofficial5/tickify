@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { cn, formatRupee } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { db } from "@/firebase";
 import {
   collection,
@@ -15,6 +15,7 @@ import {
 import { useDispatch } from "react-redux";
 import { setSelectedSeats } from "@/redux/slices/bookingSlice";
 import { toast } from "sonner";
+import { formatRupee } from "../../../utils/formatter";
 
 export const SeatSelection = ({
   onBack,

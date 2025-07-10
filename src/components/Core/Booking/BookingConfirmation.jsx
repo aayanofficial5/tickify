@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock, MapPin, Ticket, User } from "lucide-react";
 import { toast } from "sonner";
-import { formatRupee } from "@/lib/utils";
+
 import { buyTicket } from "@/services/paymentService";
 import { useSelector } from "react-redux";
+import { formatRupee } from "../../../utils/formatter";
 
 export const BookingConfirmation = ({ movie, onBack }) => {
   const [customerInfo, setCustomerInfo] = useState({

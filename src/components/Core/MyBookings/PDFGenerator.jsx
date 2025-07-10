@@ -1,5 +1,5 @@
 import { pdf } from "@react-pdf/renderer";
-import { TicketPDF } from "../components/TicketPDF";
+import { TicketPDF } from "./TicketPDF";
 
 export const generateTicketPDF = async (booking) => {
   const blob = await pdf(<TicketPDF booking={booking} />).toBlob();

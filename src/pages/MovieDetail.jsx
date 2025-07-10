@@ -3,10 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Star, Calendar, Users, Play, X } from "lucide-react";
-import NavBar from "@/components/NavBar";
+import NavBar from "@/components/Common/NavBar";
 import { useSelector } from "react-redux";
 import { IMG_URL } from "@/utils/constants";
-import Loader from "@/components/Loader";
+import Loader from '@/components/Common/Loader'
+
 
 export const MovieDetail = () => {
   const TMDB_API = import.meta.env.VITE_TMDB_API_TOKEN;
@@ -102,7 +103,9 @@ export const MovieDetail = () => {
                 <div className="bg-cinema-gold/20 p-4 rounded-full hover:scale-120 transition-transform">
                   <Play className="h-8 w-8 text-cinema-gold" />
                 </div>
-                <p className="text-cinema-gold font-semibold text-xl">Watch Trailer</p>
+                <p className="text-cinema-gold font-semibold text-xl">
+                  Watch Trailer
+                </p>
               </div>
             )}
           </div>
@@ -163,13 +166,15 @@ export const MovieDetail = () => {
                 </span>
                 <span className="text-muted-foreground ml-2">per ticket</span>
               </div>
-              {!(user?.admin)&&<Button
-                onClick={handleBookNow}
-                size="lg"
-                className="btn-gradient hover:shadow-glow transition-all duration-300 !px-3 md:!px-5"
-              >
-                Book Tickets Now
-              </Button>}
+              {!user?.admin && (
+                <Button
+                  onClick={handleBookNow}
+                  size="lg"
+                  className="btn-gradient hover:shadow-glow transition-all duration-300 !px-3 md:!px-5"
+                >
+                  Book Tickets Now
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -220,22 +225,24 @@ export const MovieDetail = () => {
       {showTrailer && trailerKey && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
           <div className="relative w-[100%] h-[100%] md:h-[90%] flex flex-col gap-6 items-center justify-center p-4 bg-gray-900/30 backdrop-blur">
-         <h1 className="text-xl md:text-3xl font-bold">{movie.title}'s Trailer</h1>
-          <div className="w-full max-w-4xl aspect-video rounded-lg overflow-hidden shadow-lg">
-            <iframe
-              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
-              title="YouTube Trailer"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              className="w-full h-full rounded-md"
-            />
-            <button
-              onClick={() => setShowTrailer(false)}
-              className="absolute top-5 right-5 text-white hover:bg-red-500 px-5 py-2"
-            >
-              <X className="w-7 h-7" />
-            </button>
-          </div>
+            <h1 className="text-xl md:text-3xl font-bold">
+              {movie.title}'s Trailer
+            </h1>
+            <div className="w-full max-w-4xl aspect-video rounded-lg overflow-hidden shadow-lg">
+              <iframe
+                src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
+                title="YouTube Trailer"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                className="w-full h-full rounded-md"
+              />
+              <button
+                onClick={() => setShowTrailer(false)}
+                className="absolute top-5 right-5 text-white hover:bg-red-500 px-5 py-2"
+              >
+                <X className="w-7 h-7" />
+              </button>
+            </div>
           </div>
         </div>
       )}

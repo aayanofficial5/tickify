@@ -10,11 +10,12 @@ import {
   updateDoc,
   doc,
 } from "firebase/firestore";
-import { ensureSeatsExist } from "@/services/ensureSeatExistService";
-import NavBar from "@/components/NavBar";
+
+import NavBar from "@/components/Common/NavBar";
 import { toast } from "sonner";
-import { fetchPopularMovies } from "@/services/movieFetchingService";
+import { fetchPopularMovies } from "@/services/tmdbService";
 import { IMG_URL } from "@/utils/constants";
+import { ensureSeatsExist } from "../services/firebaseDatabase";
 
 export const Admin = () => {
   const [tmdbMovies, setTmdbMovies] = useState([]);

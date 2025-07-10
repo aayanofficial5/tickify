@@ -61,13 +61,13 @@ const NavBar = () => {
             Movies
           </button>
           {console.log(user)}
-          {token && !user?.admin &&(
+          {token && user?.admin!==true &&(
             <Link to="/bookings" className="hidden sm:flex text-base hover:text-yellow-400">
               My Bookings
             </Link>
           )}
 
-          {token && user?.admin &&(
+          {token && user?.admin===true &&(
             <Link to="/admin-dashboard" className="hidden sm:flex text-base hover:text-yellow-400">
               Admin Dashboard
             </Link>

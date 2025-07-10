@@ -4,6 +4,7 @@ import { setSelectedMovie } from "@/redux/slices/bookingSlice";
 import { Clock, Star, Play, Calendar } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { formatRupee } from "../../../utils/formatter";
 
 // Optional: map genre IDs to names (partial example)
 const genreMap = {
@@ -98,7 +99,7 @@ export const MovieCard = ({ movie }) => {
 
         <div className="flex items-center justify-between">
           <div className="text-cinema-gold font-bold text-lg transform group-hover:scale-110 transition-transform duration-300">
-            ₹{parseInt(movie?.price)||100}
+            {formatRupee(movie?.price)||100}
           </div>
           {!(user?.admin)&&<Button
             onClick={handleBookNow}
