@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import icon  from "@/assets/icon.png";
+import icon from "@/assets/icon.png";
 
 const Auth = () => {
   const location = useLocation();
@@ -27,9 +27,9 @@ const Auth = () => {
 
   return (
     <div
-      className={`min-h-screen flex justify-center bg-[#0f0f0f] px-4 text-white pt-35 ${
-        isLogin ? "pb-50" : "pb-23"
-      }`}
+      className={`min-h-screen flex justify-center bg-[#0f0f0f] px-8 md:px-4 text-white pt-35 ${
+        isAdminRoute ? "pb-75" : isLogin ? "pb-50" : "pb-30"
+      } `}
     >
       <div className="flex flex-col items-center justify-center gap-2 absolute top-13">
         <Link to="/" className="flex items-center gap-2 font-bold">
@@ -90,11 +90,27 @@ const Auth = () => {
             <Signup setIsLogin={setIsLogin} />
           )}
 
+          {isLogin && !isAdminRoute && (
+            <div className="block text-right mt-2">
+              <span className="text-sm text-cinema-purple">
+                Admin access?{" "}
+                <Link
+                  to="/admin"
+                  className="underline underline-offset-4 hover:text-cinema-purple/70 transition-all font-medium"
+                >
+                  Login here
+                </Link>
+              </span>
+            </div>
+          )}
+
           <div className="flex justify-center">
-            <Link to="/">
+            <Link to={isAdminRoute ? "/auth?mode=login" : "/"}>
               <Button variant="ghost" className="mt-6 bg-cinema-border">
                 <ArrowLeft />
-                <div>Back to Movies</div>
+                <div>
+                  {isAdminRoute ? "Back to User Login" : "Back to Movies"}
+                </div>
               </Button>
             </Link>
           </div>

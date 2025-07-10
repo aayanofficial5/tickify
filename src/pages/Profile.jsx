@@ -439,7 +439,8 @@ export default function Profile() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="bg-cinema-dark hover:bg-gray-800 cursor-pointer"  disabled={loading}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="bg-gray-700 hover:bg-gray-800 cursor-pointer"  disabled={loading}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="absolute hover:bg-red-500 top-1 right-1" disabled={loading}><X/></AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 disabled={loading}

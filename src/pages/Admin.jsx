@@ -143,12 +143,12 @@ export const Admin = () => {
   return (
     <div className="min-h-screen bg-gradient-dark">
       <NavBar />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-6">
+      <div className="container mx-auto px-7 md:px-4 py-8">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-6">
           Admin Dashboard
         </h1>
 
-        <h2 className="text-2xl text-white font-semibold mb-4">
+        <h2 className="lg:text-lg sm:text-xl md:text-2xl text-white font-semibold mb-4">
           Now Playing Movies
         </h2>
         <div className="flex overflow-x-auto gap-4 pb-4">
@@ -191,7 +191,7 @@ export const Admin = () => {
         </div>
 
         {selectedMovie && (
-          <div className="mt-6 p-6 bg-gradient-card rounded-lg border border-cinema-border w-fit">
+          <div className="mt-6 p-6 bg-gradient-card rounded-lg border border-cinema-border md:w-fit">
             <h3 className="text-lg font-semibold text-white mb-2">
               {selectedMovie.title} -{" "}
               {isEditing ? "Edit Showtimes" : "Add Showtimes"}
@@ -204,15 +204,15 @@ export const Admin = () => {
               placeholder="Enter show price"
               value={newShowPrice}
               onChange={(e) => setNewShowPrice(e.target.value)}
-              className="mb-2 text-foreground bg-cinema-dark border-cinema-border"
+              className="mb-2 text-foreground bg-cinema-dark border-cinema-border text-sm md:text-base"
               id="price"
             />
             <label htmlFor="dateandtime" className="text-sm">
               Select Date-Time
             </label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex flex-row gap-2 mb-2">
               <Input
-                className="bg-cinema-dark text-white file:text-white [&::-webkit-calendar-picker-indicator]:invert border-cinema-border"
+                className="text-xs !px-2 md:text-base bg-cinema-dark text-white file:text-white [&::-webkit-calendar-picker-indicator]:invert border-cinema-border"
                 type="datetime-local"
                 value={newShowDateTime}
                 onChange={(e) => setNewShowDateTime(e.target.value)}

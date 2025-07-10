@@ -6,7 +6,8 @@ import {
   Ticket,
   User,
   LogOut,
-  Settings
+  Settings,
+  LayoutDashboard
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -103,13 +104,19 @@ const NavBar = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link
+                  {!user?.admin ?<Link
                     to="/bookings"
                     className="flex sm:hidden items-center gap-2 text-foreground hover:text-cinema-gold cursor-pointer"
                   >
                     <Ticket className="h-4 w-4" />
                     My Bookings
-                  </Link>
+                  </Link>:<Link
+                    to="/admin-dashboard"
+                    className="flex sm:hidden items-center gap-2 text-foreground hover:text-cinema-gold cursor-pointer"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Admin Dashboard
+                  </Link>}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-cinema-border" />
                 <DropdownMenuItem
@@ -133,7 +140,7 @@ const NavBar = () => {
               </Button>
               <Button
                 onClick={() => navigate("/auth?mode=signup")}
-                className="btn-gradient !px-4 !text-black"
+                className="!hidden sm:!flex btn-gradient !px-4 !text-black"
               >
                 Sign Up
               </Button>

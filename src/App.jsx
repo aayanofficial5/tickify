@@ -1,7 +1,6 @@
 import React from "react";
 import { Outlet, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
-import Checkout from "./pages/Checkout";
 import MyBookings from "./pages/MyBookings";
 import { MovieDetail } from "./pages/MovieDetail";
 import { Booking } from "./pages/Booking";
@@ -19,7 +18,6 @@ const App = () => {
           <Route path="/auth" element={<Auth/>} />
           <Route path="/movie/:id" element={<MovieDetail/>} />
           <Route path="/booking/:id" element={<Booking/>} /> 
-          <Route path="/checkout" element={<Checkout />} />
           <Route path="/bookings" element={<MyBookings />} />
           <Route path="/profile" element={<Profile/>}/>
           <Route path="/admin" element={<Auth/>}/>     

@@ -40,14 +40,14 @@ export default function Home() {
             <h1 className="text-5xl md:text-6xl font-bold text-gradient mb-6 animate-pulse">
               Tickify
             </h1>
-            <p className="text-lg md:text-xl text-gray-300 max-w-2xl mb-8">
+            <p className="text-base md:text-xl text-gray-300 max-w-2xl mb-8">
               Discover & book your favorite movies effortlessly. Premium
               theaters, seamless booking, and a cinematic experience like no
               other.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 text-sm md:text-base">
               <button
-                className="btn-gradient"
+                className="btn-gradient !text-cinema-dark"
                 onClick={() =>
                   document
                     .getElementById("now-playing")
@@ -75,23 +75,24 @@ export default function Home() {
       )}
 
       {/* Now Playing Section */}
-      <section id="now-playing" className="py-8 px-4">
+      <section id="now-playing" className="py-8 px-8 md:px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Now Playing
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               Explore the latest releases and timeless classics. Book your seats
               today for the ultimate cinematic experience.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 md:gap-6">
             {movies?.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>
+          
 
           {movies?.length === 0 && (
             <div className="text-center py-12">

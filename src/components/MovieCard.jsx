@@ -46,7 +46,7 @@ export const MovieCard = ({ movie }) => {
 
   return (
     <Card
-      className="group cursor-pointer bg-transparent hover:shadow-premium transition-all duration-500 hover:scale-105 hover:-translate-y-2 overflow-hidden gap-0"
+      className="border-none group cursor-pointer bg-transparent hover:shadow-premium transition-all duration-500 hover:scale-105 hover:-translate-y-2 overflow-hidden gap-0"
       onClick={handleCardClick}
     >
       <div className="relative overflow-hidden border rounded-t-xl border-cinema-border border-b-0">

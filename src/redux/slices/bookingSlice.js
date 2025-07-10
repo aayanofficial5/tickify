@@ -1,7 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  selectedSeats: (localStorage.getItem("selectedSeats"))||[],
+  step: 1,
+  selectedSeats: localStorage.getItem("selectedSeats") || [],
   selectedMovie: JSON.parse(localStorage.getItem("selectedMovie")) || null,
   selectedShowtime:
     JSON.parse(localStorage.getItem("selectedShowTime")) || null,
@@ -11,6 +12,12 @@ const bookingSlice = createSlice({
   name: "booking",
   initialState,
   reducers: {
+    nextStep: (state) => {
+      if (state.step < 3) state.step += 1;
+    },
+    prevStep: (state) => {
+      if (state.step > 1) state.step -= 1;
+    },
     setSelectedSeats(state, action) {
       state.selectedSeats = action.payload;
       localStorage.setItem("selectedSeats", JSON.stringify(action.payload));
@@ -35,6 +42,8 @@ const bookingSlice = createSlice({
 });
 
 export const {
+  nextStep,
+  prevStep,
   setSelectedSeats,
   setSelectedMovie,
   setSelectedShowtime,

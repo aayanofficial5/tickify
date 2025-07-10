@@ -96,7 +96,7 @@ export const MovieDetail = () => {
 
             {trailerKey && (
               <div
-                className="absolute inset-0 flex flex-col gap-5 items-center justify-center border-2 border-cinema-border rounded-2xl bg-black/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer"
+                className="absolute inset-0 flex flex-col gap-5 items-center justify-center border-2 border-cinema-border rounded-2xl bg-black/50 md:backdrop-blur-sm md:opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer"
                 onClick={() => setShowTrailer(true)}
               >
                 <div className="bg-cinema-gold/20 p-4 rounded-full hover:scale-120 transition-transform">
@@ -166,7 +166,7 @@ export const MovieDetail = () => {
               {!(user?.admin)&&<Button
                 onClick={handleBookNow}
                 size="lg"
-                className="btn-gradient hover:shadow-glow transition-all duration-300 px-8"
+                className="btn-gradient hover:shadow-glow transition-all duration-300 !px-3 md:!px-5"
               >
                 Book Tickets Now
               </Button>}
@@ -218,9 +218,9 @@ export const MovieDetail = () => {
 
       {/* Modal for Trailer */}
       {showTrailer && trailerKey && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="relative w-[70%] h-[90%] flex flex-col gap-6 items-center justify-center p-4 bg-gray-800">
-         <h1 className="text-3xl font-bold">{movie.title}'s Trailer</h1>
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+          <div className="relative w-[100%] h-[100%] md:h-[90%] flex flex-col gap-6 items-center justify-center p-4 bg-gray-900/30 backdrop-blur">
+         <h1 className="text-xl md:text-3xl font-bold">{movie.title}'s Trailer</h1>
           <div className="w-full max-w-4xl aspect-video rounded-lg overflow-hidden shadow-lg">
             <iframe
               src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
