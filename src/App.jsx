@@ -15,7 +15,7 @@ import NotFound from "./components/Common/NotFound";
 
 const App = () => {
   return (
-    <div className="font-[poppins]">
+    <div>
       <Routes>
         <Route path="/" element={<Outlet />}>
           <Route index element={<Home />} />

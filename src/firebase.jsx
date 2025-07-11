@@ -1,17 +1,16 @@
-// src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: "AIzaSyDHS75TKI-ujVVgZcKrqF1_p6e27GT35w0",
+  authDomain: "ticket-booking-app-celebal.firebaseapp.com",
+  projectId: "ticket-booking-app-celebal",
+  storageBucket: "ticket-booking-app-celebal.firebasestorage.app",
+  messagingSenderId: "555661733008",
+  appId: "1:555661733008:web:5f9064614134b08200fc15",
+  measurementId: "G-C5KLML7PDM",
 };
 
 const app = initializeApp(firebaseConfig);

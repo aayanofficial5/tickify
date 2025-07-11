@@ -38,10 +38,21 @@ const Login = ({ isAdmin }) => {
         if (!userDoc.exists() || userDoc.data()?.admin !== "true") {
           await signOut(auth);
           toast.error("Access denied. Admins only.");
-          navigate("/auth?mode=login");
+          navigate("/");
           return;
         }
         admin = true;
+      } else {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        console.log(userDoc?.data());
+        if (userDoc.exists() && userDoc.data()?.admin === "true") {
+          await signOut(auth);
+          toast.error(
+            "Could not login admin as a user! Please go to admin route instead."
+          );
+          navigate("/");
+          return;
+        }
       }
 
       const {

@@ -207,6 +207,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    font-family: 'Poppins', sans-serif;
+  }
 }
 
 /* styles.css or inside a <style> block */
