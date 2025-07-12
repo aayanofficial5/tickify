@@ -94,7 +94,7 @@ const NavBar = () => {
                   My Account
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-cinema-border" />
-                <DropdownMenuItem asChild>
+                {user?.admin!==true&&<DropdownMenuItem asChild>
                   <Link
                     to="/profile"
                     className="flex items-center gap-2 text-foreground hover:text-cinema-gold cursor-pointer"
@@ -102,9 +102,9 @@ const NavBar = () => {
                     <Settings className="h-4 w-4" />
                     Profile Settings
                   </Link>
-                </DropdownMenuItem>
+                </DropdownMenuItem>}
                 <DropdownMenuItem asChild>
-                  {!user?.admin ?<Link
+                  {user?.admin!==true ?<Link
                     to="/bookings"
                     className="flex sm:hidden items-center gap-2 text-foreground hover:text-cinema-gold cursor-pointer"
                   >
